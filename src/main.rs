@@ -1,5 +1,6 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
+use bevy::render::camera::ScalingMode;
 use character_controller::PlayerPlugin;
 use input::InputPlugin;
 use physics::PhysicsPlugin;
@@ -23,5 +24,14 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2d);
+    commands.spawn((
+        Camera3d::default(),
+        Projection::Orthographic(OrthographicProjection {
+            near: -1000.0,
+            scaling_mode: ScalingMode::FixedVertical {
+                viewport_height: 50.0,
+            },
+            ..OrthographicProjection::default_3d()
+        }),
+    ));
 }

@@ -6,6 +6,7 @@ pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default().in_fixed_schedule())
+            .add_plugins(RapierDebugRenderPlugin::default())
             .insert_resource(TimestepMode::Interpolated {
                 dt: 1.0 / 60.0,
                 time_scale: 1.0,

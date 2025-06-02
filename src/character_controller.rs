@@ -1,10 +1,12 @@
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 use crate::input::{InputSettings, PlayerAction};
 use leafwing_input_manager::prelude::ActionState;
 
+/// `acceleration` and `max_speed` are only read when this component is first added
 #[derive(Debug, Component)]
-#[require(CharacterControllerState)]
+#[require(CharacterControllerState, Velocity::zero(), Collider::ball(1.0))]
 pub struct CharacterController {
     acceleration: f32,
     max_speed: f32,
@@ -13,7 +15,7 @@ pub struct CharacterController {
 impl Default for CharacterController {
     fn default() -> Self {
         CharacterController {
-            max_speed: 250.0,
+            max_speed: 35.0,
             acceleration: 10.0,
         }
     }
@@ -89,10 +91,7 @@ impl CharacterControllerState {
 }
 
 fn setup_player(mut commands: Commands) {
-    commands.spawn((
-        CharacterController::default(),
-        Transform::from_xyz(-200.0, 150.0, 0.0),
-    ));
+    commands.spawn(CharacterController::default());
 }
 
 fn debug_draw_player(
@@ -104,14 +103,9 @@ fn debug_draw_player(
     mut gizmos: Gizmos,
 ) {
     for (_player, physics_state, transform) in query.iter() {
-        gizmos.circle_2d(
-            Isometry2d::from_translation(transform.translation().truncate()),
-            5.0,
-            bevy::color::palettes::basic::GREEN,
-        );
-        gizmos.arrow_2d(
-            transform.translation().truncate(),
-            transform.translation().truncate() + physics_state.heading_vec2() * 15.0,
+        gizmos.arrow(
+            transform.translation(),
+            transform.translation() + physics_state.heading_vec2().extend(0.0) * 2.0,
             bevy::color::palettes::basic::GREEN,
         );
     }
