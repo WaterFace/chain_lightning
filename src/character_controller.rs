@@ -4,15 +4,15 @@ use crate::input::{InputSettings, PlayerAction};
 use leafwing_input_manager::prelude::ActionState;
 
 #[derive(Debug, Component)]
-#[require(PlayerPhysicsState)]
-pub struct Player {
+#[require(CharacterControllerState)]
+pub struct CharacterController {
     acceleration: f32,
     max_speed: f32,
 }
 
-impl Default for Player {
+impl Default for CharacterController {
     fn default() -> Self {
-        Player {
+        CharacterController {
             max_speed: 250.0,
             acceleration: 10.0,
         }
@@ -21,7 +21,7 @@ impl Default for Player {
 
 #[derive(Component, Debug, Default)]
 #[require(Transform)]
-struct PlayerPhysicsState {
+struct CharacterControllerState {
     acceleration: f32,
     max_speed: f32,
     velocity: Vec2,
@@ -34,10 +34,14 @@ struct PlayerPhysicsState {
     previous_translation: Vec3,
 }
 
-impl PlayerPhysicsState {
+impl CharacterControllerState {
     fn on_add(
-        trigger: Trigger<OnAdd, PlayerPhysicsState>,
-        mut query: Query<(&mut PlayerPhysicsState, &Transform, &Player)>,
+        trigger: Trigger<OnAdd, CharacterControllerState>,
+        mut query: Query<(
+            &mut CharacterControllerState,
+            &Transform,
+            &CharacterController,
+        )>,
     ) {
         let (mut physics_state, transform, player) =
             query.get_mut(trigger.target()).unwrap_or_else(|e| {
@@ -85,11 +89,18 @@ impl PlayerPhysicsState {
 }
 
 fn setup_player(mut commands: Commands) {
-    commands.spawn((Player::default(), Transform::from_xyz(-200.0, 150.0, 0.0)));
+    commands.spawn((
+        CharacterController::default(),
+        Transform::from_xyz(-200.0, 150.0, 0.0),
+    ));
 }
 
 fn debug_draw_player(
-    query: Query<(&Player, &PlayerPhysicsState, &GlobalTransform)>,
+    query: Query<(
+        &CharacterController,
+        &CharacterControllerState,
+        &GlobalTransform,
+    )>,
     mut gizmos: Gizmos,
 ) {
     for (_player, physics_state, transform) in query.iter() {
@@ -124,7 +135,7 @@ fn handle_input(
     mut accumulated: ResMut<AccumulatedInput>,
     input: Res<ActionState<PlayerAction>>,
     input_settings: Res<InputSettings>,
-    mut query: Query<(&Player, &mut PlayerPhysicsState)>,
+    mut query: Query<(&CharacterController, &mut CharacterControllerState)>,
 ) {
     // movement is oriented as if the player is facing right
     if input.pressed(&PlayerAction::MoveForward) {
@@ -160,7 +171,7 @@ fn handle_input(
 
 fn advance_physics(
     time: Res<Time<Fixed>>,
-    mut query: Query<&mut PlayerPhysicsState>,
+    mut query: Query<&mut CharacterControllerState>,
     mut accumulated: ResMut<AccumulatedInput>,
 ) {
     for mut physics_state in query.iter_mut() {
@@ -172,7 +183,7 @@ fn advance_physics(
 
 fn interpolate_rendered_transform(
     time: Res<Time<Fixed>>,
-    mut query: Query<(&mut Transform, &PlayerPhysicsState)>,
+    mut query: Query<(&mut Transform, &CharacterControllerState)>,
 ) {
     for (mut transform, physics_state) in query.iter_mut() {
         let curr = physics_state.translation;
@@ -200,7 +211,7 @@ impl Plugin for PlayerPlugin {
                         .in_set(RunFixedMainLoopSystem::AfterFixedMainLoop),
                 ),
             )
-            .add_observer(PlayerPhysicsState::on_add)
+            .add_observer(CharacterControllerState::on_add)
             .insert_resource(AccumulatedInput::default());
     }
 }

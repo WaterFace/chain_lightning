@@ -1,12 +1,12 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
+use character_controller::PlayerPlugin;
 use input::InputPlugin;
 use physics::PhysicsPlugin;
-use player::PlayerPlugin;
 
+mod character_controller;
 mod input;
 mod physics;
-mod player;
 
 fn main() {
     App::new()
