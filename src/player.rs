@@ -3,43 +3,46 @@ use bevy::prelude::*;
 use crate::input::{InputSettings, PlayerAction};
 use leafwing_input_manager::prelude::ActionState;
 
-#[derive(Debug, Default, Component)]
+#[derive(Debug, Component)]
 #[require(PlayerPhysicsState)]
-pub struct Player {}
+pub struct Player {
+    acceleration: f32,
+    max_speed: f32,
+}
 
-#[derive(Component, Debug)]
+impl Default for Player {
+    fn default() -> Self {
+        Player {
+            max_speed: 250.0,
+            acceleration: 10.0,
+        }
+    }
+}
+
+#[derive(Component, Debug, Default)]
 #[require(Transform)]
 struct PlayerPhysicsState {
+    acceleration: f32,
+    max_speed: f32,
     velocity: Vec2,
     heading: f32,
 
     desired_turn: f32,
+    desired_velocity: Vec2,
 
     translation: Vec3,
     previous_translation: Vec3,
 }
 
-impl Default for PlayerPhysicsState {
-    fn default() -> Self {
-        use std::f32::consts::PI;
-        PlayerPhysicsState {
-            velocity: Vec2::ZERO,
-            heading: PI / 2.0,
-            desired_turn: 0.0,
-            translation: Vec3::ZERO,
-            previous_translation: Vec3::ZERO,
-        }
-    }
-}
-
 impl PlayerPhysicsState {
     fn on_add(
         trigger: Trigger<OnAdd, PlayerPhysicsState>,
-        mut query: Query<(&mut PlayerPhysicsState, &Transform)>,
+        mut query: Query<(&mut PlayerPhysicsState, &Transform, &Player)>,
     ) {
-        let (mut physics_state, transform) = query.get_mut(trigger.target()).unwrap_or_else(|e| {
-            panic!("failed to query for newly added player physics state: {e}");
-        });
+        let (mut physics_state, transform, player) =
+            query.get_mut(trigger.target()).unwrap_or_else(|e| {
+                panic!("failed to query for newly added player physics state: {e}");
+            });
 
         info!(
             "added PlayerPhysicsState with translation: {}",
@@ -47,18 +50,32 @@ impl PlayerPhysicsState {
         );
         physics_state.translation = transform.translation;
         physics_state.previous_translation = transform.translation;
+        physics_state.acceleration = player.acceleration;
+        physics_state.max_speed = player.max_speed;
     }
 
     fn update(&mut self, dt: f32) {
         use std::f32::consts::PI;
         self.previous_translation = self.translation;
         self.translation += self.velocity.extend(0.0) * dt;
+
+        let diff = self.desired_velocity - self.velocity;
+        self.velocity += diff * self.acceleration * dt;
+
         self.heading += self.desired_turn * 2.0 * PI * dt;
     }
 
     fn set_from_input(&mut self, movement: Vec2, turn: f32) {
-        let new_vel = movement.rotate(self.heading_vec2());
-        self.velocity = new_vel;
+        // Allow less-than-full-speed movement, but still normalize if necessary so things don't move
+        // faster diagonally
+        let desired_movement = if movement.length_squared() > 1.0 {
+            movement.normalize()
+        } else {
+            movement
+        };
+
+        self.desired_velocity = (desired_movement * self.max_speed).rotate(self.heading_vec2());
+
         self.desired_turn = turn;
     }
 
@@ -107,7 +124,7 @@ fn handle_input(
     mut accumulated: ResMut<AccumulatedInput>,
     input: Res<ActionState<PlayerAction>>,
     input_settings: Res<InputSettings>,
-    mut query: Query<&mut PlayerPhysicsState>,
+    mut query: Query<(&Player, &mut PlayerPhysicsState)>,
 ) {
     // movement is oriented as if the player is facing right
     if input.pressed(&PlayerAction::MoveForward) {
@@ -133,10 +150,9 @@ fn handle_input(
 
     accumulated.movement = accumulated.movement.normalize_or_zero();
 
-    for mut physics_state in query.iter_mut() {
-        const SPEED: f32 = 150.0;
+    for (_player, mut physics_state) in query.iter_mut() {
         physics_state.set_from_input(
-            accumulated.movement * SPEED,
+            accumulated.movement,
             accumulated.turn * input_settings.turn_rate,
         );
     }
