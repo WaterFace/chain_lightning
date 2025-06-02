@@ -16,11 +16,6 @@ impl Plugin for PhysicsPlugin {
                 },
             ),
         )
-        .add_plugins(RapierDebugRenderPlugin::default())
-        .insert_resource(TimestepMode::Interpolated {
-            dt: 1.0 / 60.0,
-            time_scale: 1.0,
-            substeps: 1,
-        });
+        .add_plugins(RapierDebugRenderPlugin::default().disabled());
     }
 }

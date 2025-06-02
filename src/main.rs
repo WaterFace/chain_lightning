@@ -1,13 +1,11 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
-use bevy::render::camera::ScalingMode;
-use character_controller::PlayerPlugin;
-use input::InputPlugin;
-use physics::PhysicsPlugin;
 
+mod camera;
 mod character_controller;
 mod input;
 mod physics;
+mod player;
 
 fn main() {
     App::new()
@@ -24,7 +22,13 @@ fn main() {
                     default_sampler: bevy::image::ImageSamplerDescriptor::nearest(),
                 }),
         )
-        .add_plugins((PlayerPlugin, InputPlugin, PhysicsPlugin))
+        .add_plugins((
+            player::PlayerPlugin,
+            character_controller::CharacterControllerPlugin,
+            input::InputPlugin,
+            physics::PhysicsPlugin,
+            camera::CameraPlugin,
+        ))
         .add_systems(Startup, setup)
         .run();
 }
@@ -35,21 +39,11 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
+    commands.spawn(player::Player::default());
     commands.spawn(AmbientLight {
         brightness: 0.5,
         ..Default::default()
     });
-
-    commands.spawn((
-        Camera3d::default(),
-        Projection::Orthographic(OrthographicProjection {
-            near: -1000.0,
-            scaling_mode: ScalingMode::FixedVertical {
-                viewport_height: 50.0,
-            },
-            ..OrthographicProjection::default_3d()
-        }),
-    ));
 
     commands.spawn((
         Transform::from_xyz(0.0, 0.0, -1.0),

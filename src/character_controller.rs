@@ -6,8 +6,11 @@ use leafwing_input_manager::prelude::ActionState;
 
 #[derive(Debug, Component)]
 #[require(
+    Transform,
     CharacterControllerState,
+    ReadHeading,
     RigidBody,
+    LockedAxes::ROTATION_LOCKED,
     TransformInterpolation,
     Velocity::zero(),
     Collider::ball(1.0)
@@ -26,11 +29,26 @@ impl Default for CharacterController {
     }
 }
 
+/// Allows reading the current heading of the character controller
+///
+/// Set by the character controller. Should not be modified directly.
+#[derive(Component, Debug, Default, Clone, Copy, PartialEq)]
+pub struct ReadHeading {
+    pub heading: f32,
+}
+
+impl ReadHeading {
+    pub fn vec2(self) -> Vec2 {
+        Vec2::from_angle(self.heading)
+    }
+
+    pub fn vec3(self) -> Vec3 {
+        self.vec2().extend(0.0)
+    }
+}
+
 #[derive(Component, Debug, Default)]
-#[require(Transform)]
 struct CharacterControllerState {
-    // acceleration: f32,
-    // max_speed: f32,
     heading: f32,
 
     desired_turn: f32,
@@ -40,27 +58,6 @@ struct CharacterControllerState {
 impl CharacterControllerState {
     fn heading_vec2(&self) -> Vec2 {
         Vec2::from_angle(self.heading)
-    }
-}
-
-fn setup_player(mut commands: Commands) {
-    commands.spawn(CharacterController::default());
-}
-
-fn debug_draw_player(
-    query: Query<(
-        &CharacterController,
-        &CharacterControllerState,
-        &GlobalTransform,
-    )>,
-    mut gizmos: Gizmos,
-) {
-    for (_player, physics_state, transform) in query.iter() {
-        gizmos.arrow(
-            transform.translation(),
-            transform.translation() + physics_state.heading_vec2().extend(0.0) * 2.0,
-            bevy::color::palettes::basic::GREEN,
-        );
     }
 }
 
@@ -129,37 +126,36 @@ fn advance_physics(
     mut query: Query<(
         &CharacterController,
         &mut CharacterControllerState,
+        &mut ReadHeading,
         &mut Velocity,
     )>,
     mut accumulated: ResMut<AccumulatedInput>,
 ) {
     let dt = time.delta_secs();
 
-    for (controller, mut physics_state, mut velocity) in query.iter_mut() {
+    for (controller, mut physics_state, mut read_heading, mut velocity) in query.iter_mut() {
         use std::f32::consts::PI;
         let diff = physics_state.desired_velocity - velocity.linvel;
         velocity.linvel += diff * controller.acceleration * dt;
-        info!("{}", velocity.linvel);
 
         physics_state.heading += physics_state.desired_turn * 2.0 * PI * dt;
+        read_heading.heading = physics_state.heading;
 
         accumulated.clear();
     }
 }
 
 #[derive(Debug, Default)]
-pub struct PlayerPlugin;
+pub struct CharacterControllerPlugin;
 
-impl Plugin for PlayerPlugin {
+impl Plugin for CharacterControllerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_player)
-            .add_systems(PostUpdate, debug_draw_player)
-            .add_systems(
-                Update,
-                (handle_input, advance_physics)
-                    .chain()
-                    .in_set(PhysicsSet::SyncBackend),
-            )
-            .insert_resource(AccumulatedInput::default());
+        app.add_systems(
+            Update,
+            (handle_input, advance_physics)
+                .chain()
+                .in_set(PhysicsSet::SyncBackend),
+        )
+        .insert_resource(AccumulatedInput::default());
     }
 }
