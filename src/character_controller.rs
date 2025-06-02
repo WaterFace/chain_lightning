@@ -4,9 +4,14 @@ use bevy_rapier2d::prelude::*;
 use crate::input::{InputSettings, PlayerAction};
 use leafwing_input_manager::prelude::ActionState;
 
-/// `acceleration` and `max_speed` are only read when this component is first added
 #[derive(Debug, Component)]
-#[require(CharacterControllerState, Velocity::zero(), Collider::ball(1.0))]
+#[require(
+    CharacterControllerState,
+    RigidBody,
+    TransformInterpolation,
+    Velocity::zero(),
+    Collider::ball(1.0)
+)]
 pub struct CharacterController {
     acceleration: f32,
     max_speed: f32,
@@ -24,67 +29,15 @@ impl Default for CharacterController {
 #[derive(Component, Debug, Default)]
 #[require(Transform)]
 struct CharacterControllerState {
-    acceleration: f32,
-    max_speed: f32,
-    velocity: Vec2,
+    // acceleration: f32,
+    // max_speed: f32,
     heading: f32,
 
     desired_turn: f32,
     desired_velocity: Vec2,
-
-    translation: Vec3,
-    previous_translation: Vec3,
 }
 
 impl CharacterControllerState {
-    fn on_add(
-        trigger: Trigger<OnAdd, CharacterControllerState>,
-        mut query: Query<(
-            &mut CharacterControllerState,
-            &Transform,
-            &CharacterController,
-        )>,
-    ) {
-        let (mut physics_state, transform, player) =
-            query.get_mut(trigger.target()).unwrap_or_else(|e| {
-                panic!("failed to query for newly added player physics state: {e}");
-            });
-
-        info!(
-            "added PlayerPhysicsState with translation: {}",
-            transform.translation
-        );
-        physics_state.translation = transform.translation;
-        physics_state.previous_translation = transform.translation;
-        physics_state.acceleration = player.acceleration;
-        physics_state.max_speed = player.max_speed;
-    }
-
-    fn update(&mut self, dt: f32) {
-        use std::f32::consts::PI;
-        self.previous_translation = self.translation;
-        self.translation += self.velocity.extend(0.0) * dt;
-
-        let diff = self.desired_velocity - self.velocity;
-        self.velocity += diff * self.acceleration * dt;
-
-        self.heading += self.desired_turn * 2.0 * PI * dt;
-    }
-
-    fn set_from_input(&mut self, movement: Vec2, turn: f32) {
-        // Allow less-than-full-speed movement, but still normalize if necessary so things don't move
-        // faster diagonally
-        let desired_movement = if movement.length_squared() > 1.0 {
-            movement.normalize()
-        } else {
-            movement
-        };
-
-        self.desired_velocity = (desired_movement * self.max_speed).rotate(self.heading_vec2());
-
-        self.desired_turn = turn;
-    }
-
     fn heading_vec2(&self) -> Vec2 {
         Vec2::from_angle(self.heading)
     }
@@ -155,37 +108,42 @@ fn handle_input(
 
     accumulated.movement = accumulated.movement.normalize_or_zero();
 
-    for (_player, mut physics_state) in query.iter_mut() {
-        physics_state.set_from_input(
-            accumulated.movement,
-            accumulated.turn * input_settings.turn_rate,
-        );
+    for (player, mut physics_state) in query.iter_mut() {
+        // Allow less-than-full-speed movement, but still normalize if necessary so things don't move
+        // faster diagonally
+        let desired_movement = if accumulated.movement.length_squared() > 1.0 {
+            accumulated.movement.normalize()
+        } else {
+            accumulated.movement
+        };
+
+        physics_state.desired_velocity =
+            (desired_movement * player.max_speed).rotate(physics_state.heading_vec2());
+
+        physics_state.desired_turn = accumulated.turn * input_settings.turn_rate;
     }
 }
 
 fn advance_physics(
     time: Res<Time<Fixed>>,
-    mut query: Query<&mut CharacterControllerState>,
+    mut query: Query<(
+        &CharacterController,
+        &mut CharacterControllerState,
+        &mut Velocity,
+    )>,
     mut accumulated: ResMut<AccumulatedInput>,
 ) {
-    for mut physics_state in query.iter_mut() {
-        physics_state.update(time.delta_secs());
+    let dt = time.delta_secs();
+
+    for (controller, mut physics_state, mut velocity) in query.iter_mut() {
+        use std::f32::consts::PI;
+        let diff = physics_state.desired_velocity - velocity.linvel;
+        velocity.linvel += diff * controller.acceleration * dt;
+        info!("{}", velocity.linvel);
+
+        physics_state.heading += physics_state.desired_turn * 2.0 * PI * dt;
 
         accumulated.clear();
-    }
-}
-
-fn interpolate_rendered_transform(
-    time: Res<Time<Fixed>>,
-    mut query: Query<(&mut Transform, &CharacterControllerState)>,
-) {
-    for (mut transform, physics_state) in query.iter_mut() {
-        let curr = physics_state.translation;
-        let prev = physics_state.previous_translation;
-
-        let alpha = time.overstep_fraction();
-
-        transform.translation = prev.lerp(curr, alpha);
     }
 }
 
@@ -195,17 +153,13 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_player)
-            .add_systems(Update, debug_draw_player)
-            .add_systems(FixedUpdate, advance_physics)
+            .add_systems(PostUpdate, debug_draw_player)
             .add_systems(
-                RunFixedMainLoop,
-                (
-                    handle_input.in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
-                    interpolate_rendered_transform
-                        .in_set(RunFixedMainLoopSystem::AfterFixedMainLoop),
-                ),
+                Update,
+                (handle_input, advance_physics)
+                    .chain()
+                    .in_set(PhysicsSet::SyncBackend),
             )
-            .add_observer(CharacterControllerState::on_add)
             .insert_resource(AccumulatedInput::default());
     }
 }
