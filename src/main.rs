@@ -1,5 +1,10 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
+use input::InputPlugin;
+use player::PlayerPlugin;
+
+mod input;
+mod player;
 
 fn main() {
     App::new()
@@ -10,14 +15,11 @@ fn main() {
             meta_check: AssetMetaCheck::Never,
             ..default()
         }))
+        .add_plugins((PlayerPlugin, InputPlugin))
         .add_systems(Startup, setup)
         .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(mut commands: Commands) {
     commands.spawn(Camera2d);
-    commands.spawn(Sprite {
-        image: asset_server.load("ducky.png"),
-        ..Default::default()
-    });
 }
