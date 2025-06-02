@@ -1,9 +1,11 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
 use input::InputPlugin;
+use physics::PhysicsPlugin;
 use player::PlayerPlugin;
 
 mod input;
+mod physics;
 mod player;
 
 fn main() {
@@ -15,7 +17,7 @@ fn main() {
             meta_check: AssetMetaCheck::Never,
             ..default()
         }))
-        .add_plugins((PlayerPlugin, InputPlugin))
+        .add_plugins((PlayerPlugin, InputPlugin, PhysicsPlugin))
         .add_systems(Startup, setup)
         .run();
 }
