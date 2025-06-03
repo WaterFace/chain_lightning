@@ -1,12 +1,12 @@
 use bevy::prelude::*;
-use bevy_rapier2d::{prelude::*, rapier::prelude::IntegrationParameters};
+use bevy_rapier3d::{prelude::*, rapier::prelude::IntegrationParameters};
 
 pub struct PhysicsPlugin;
 
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         let mut rapier_configuration = RapierConfiguration::new(1.0);
-        rapier_configuration.gravity = Vec2::ZERO;
+        rapier_configuration.gravity = Vec3::ZERO;
 
         app.add_plugins(
             RapierPhysicsPlugin::<NoUserData>::default().with_custom_initialization(

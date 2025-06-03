@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::*;
+use bevy_rapier3d::prelude::*;
 
 use crate::input::{InputSettings, PlayerAction};
 use leafwing_input_manager::prelude::ActionState;
@@ -10,10 +10,10 @@ use leafwing_input_manager::prelude::ActionState;
     CharacterControllerState,
     ReadHeading,
     RigidBody,
-    LockedAxes::ROTATION_LOCKED,
+    LockedAxes = LockedAxes::ROTATION_LOCKED | LockedAxes::TRANSLATION_LOCKED_Y,
     TransformInterpolation,
     Velocity::zero(),
-    Collider::ball(1.0)
+    Collider::capsule_y(0.5, 0.5),
 )]
 pub struct CharacterController {
     acceleration: f32,
@@ -37,40 +37,24 @@ pub struct ReadHeading {
     pub heading: f32,
 }
 
-impl ReadHeading {
-    pub fn vec2(self) -> Vec2 {
-        Vec2::from_angle(self.heading)
-    }
-
-    pub fn vec3(self) -> Vec3 {
-        self.vec2().extend(0.0)
-    }
-}
-
 #[derive(Component, Debug, Default)]
 struct CharacterControllerState {
     heading: f32,
 
     desired_turn: f32,
-    desired_velocity: Vec2,
-}
-
-impl CharacterControllerState {
-    fn heading_vec2(&self) -> Vec2 {
-        Vec2::from_angle(self.heading)
-    }
+    desired_velocity: Vec3,
 }
 
 #[derive(Debug, Default, Resource)]
 struct AccumulatedInput {
     // movement in player's frame of reference
-    movement: Vec2,
+    movement: Vec3,
     turn: f32,
 }
 
 impl AccumulatedInput {
     fn clear(&mut self) {
-        self.movement = Vec2::ZERO;
+        self.movement = Vec3::ZERO;
         self.turn = 0.0;
     }
 }
@@ -79,21 +63,24 @@ fn handle_input(
     mut accumulated: ResMut<AccumulatedInput>,
     input: Res<ActionState<PlayerAction>>,
     input_settings: Res<InputSettings>,
-    mut query: Query<(&CharacterController, &mut CharacterControllerState)>,
+    mut query: Query<
+        (&CharacterController, &mut CharacterControllerState),
+        With<crate::player::Player>,
+    >,
 ) {
-    // movement is oriented as if the player is facing right
+    // movement is oriented as if the player is facing in the negative Z direction
     if input.pressed(&PlayerAction::MoveForward) {
-        accumulated.movement += Vec2::X;
+        accumulated.movement += Vec3::NEG_Z;
     }
     if input.pressed(&PlayerAction::MoveBackward) {
-        accumulated.movement += Vec2::NEG_X;
+        accumulated.movement += Vec3::Z;
     }
 
     if input.pressed(&PlayerAction::StrafeLeft) {
-        accumulated.movement += Vec2::Y;
+        accumulated.movement += Vec3::NEG_X;
     }
     if input.pressed(&PlayerAction::StrafeRight) {
-        accumulated.movement += Vec2::NEG_Y;
+        accumulated.movement += Vec3::X;
     }
 
     if input.pressed(&PlayerAction::TurnLeft) {
@@ -102,8 +89,6 @@ fn handle_input(
     if input.pressed(&PlayerAction::TurnRight) {
         accumulated.turn -= 1.0;
     }
-
-    accumulated.movement = accumulated.movement.normalize_or_zero();
 
     for (player, mut physics_state) in query.iter_mut() {
         // Allow less-than-full-speed movement, but still normalize if necessary so things don't move
@@ -114,8 +99,8 @@ fn handle_input(
             accumulated.movement
         };
 
-        physics_state.desired_velocity =
-            (desired_movement * player.max_speed).rotate(physics_state.heading_vec2());
+        physics_state.desired_velocity = Quat::from_axis_angle(Vec3::Y, physics_state.heading)
+            * (desired_movement * player.max_speed);
 
         physics_state.desired_turn = accumulated.turn * input_settings.turn_rate;
     }
