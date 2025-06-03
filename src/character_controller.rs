@@ -16,8 +16,8 @@ use leafwing_input_manager::prelude::ActionState;
     Collider::capsule_y(0.5, 0.5),
 )]
 pub struct CharacterController {
-    acceleration: f32,
-    max_speed: f32,
+    pub acceleration: f32,
+    pub max_speed: f32,
 }
 
 impl Default for CharacterController {
@@ -38,11 +38,11 @@ pub struct ReadHeading {
 }
 
 #[derive(Component, Debug, Default)]
-struct CharacterControllerState {
-    heading: f32,
+pub struct CharacterControllerState {
+    pub heading: f32,
 
-    desired_turn: f32,
-    desired_velocity: Vec3,
+    pub desired_turn: f32,
+    pub desired_velocity: Vec3,
 }
 
 #[derive(Debug, Default, Resource)]
@@ -106,7 +106,7 @@ fn handle_input(
     }
 }
 
-fn advance_physics(
+fn set_velocity(
     time: Res<Time<Fixed>>,
     mut query: Query<(
         &CharacterController,
@@ -137,7 +137,7 @@ impl Plugin for CharacterControllerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (handle_input, advance_physics)
+            (handle_input, set_velocity)
                 .chain()
                 .in_set(PhysicsSet::SyncBackend),
         )

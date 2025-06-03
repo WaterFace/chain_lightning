@@ -3,9 +3,11 @@ use bevy::prelude::*;
 
 mod camera;
 mod character_controller;
+mod fire_skull;
 mod input;
 mod physics;
 mod player;
+mod sprite;
 
 fn main() {
     App::new()
@@ -28,6 +30,8 @@ fn main() {
             input::InputPlugin,
             physics::PhysicsPlugin,
             camera::CameraPlugin,
+            fire_skull::FireSkullPlugin,
+            sprite::SpritePlugin,
         ))
         .add_systems(Startup, setup)
         .run();
@@ -39,16 +43,21 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
+    // commands.spawn((Camera3d::default(), Transform::from_xyz(0.0, 0.0, 1.0)));
+    commands.spawn((
+        fire_skull::FireSkull::default(),
+        Transform::from_xyz(0.0, 0.0, -13.0),
+    ));
     commands.spawn(player::Player::default());
     commands.spawn(AmbientLight {
-        brightness: 0.5,
+        brightness: 1.0,
         ..Default::default()
     });
 
     commands.spawn((
-        Transform::from_xyz(0.0, 0.0, -1.0),
+        Transform::from_xyz(0.0, -1.0, 0.0),
         Mesh3d(meshes.add(Plane3d {
-            normal: Dir3::Z,
+            normal: Dir3::Y,
             half_size: Vec2::ONE * 15.0,
         })),
         MeshMaterial3d(materials.add(StandardMaterial {
