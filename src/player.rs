@@ -1,7 +1,11 @@
 use bevy::prelude::*;
 
 #[derive(Debug, Default, Component)]
-#[require(crate::character_controller::CharacterController)]
+#[require(
+    Name::new("Player"),
+    Visibility::Visible,
+    crate::character_controller::CharacterController
+)]
 pub struct Player {}
 
 pub struct PlayerPlugin;
