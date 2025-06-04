@@ -23,15 +23,6 @@ pub struct CharacterController {
     pub max_speed: f32,
 }
 
-impl Default for CharacterController {
-    fn default() -> Self {
-        CharacterController {
-            max_speed: 35.0,
-            acceleration: 10.0,
-        }
-    }
-}
-
 /// Allows reading the current heading of the character controller
 ///
 /// Set by the character controller. Should not be modified directly.

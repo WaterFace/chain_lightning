@@ -11,7 +11,7 @@ use crate::{
 #[derive(Debug, Default, Component)]
 #[require(
     Visibility,
-    CharacterController = CharacterController { max_speed: 15.0, acceleration: 10.0 },
+    CharacterController = CharacterController { max_speed: 5.0, acceleration: 10.0 },
 )]
 pub struct FireSkull {}
 
