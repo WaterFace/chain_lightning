@@ -27,7 +27,6 @@ impl Plugin for ShotgunPlugin {
 }
 
 // TODO: hook up sounds
-#[allow(unused)]
 #[derive(Debug, Clone, Copy, Event, Hash, PartialEq, Eq)]
 pub enum ShotgunEvent {
     Fire,
@@ -85,6 +84,7 @@ fn update_shotgun(
     time: Res<Time>,
     input: Res<ActionState<PlayerAction>>,
     mut query: Query<&mut Shotgun>,
+    mut writer: EventWriter<ShotgunEvent>,
 ) {
     for mut shotgun in query.iter_mut() {
         match shotgun.state {
@@ -105,6 +105,7 @@ fn update_shotgun(
                     shotgun.shots -= 1;
                     shotgun.next_state = ShotgunState::Idle
                 }
+                writer.write(ShotgunEvent::Fire);
             }
 
             ShotgunState::Firing {
@@ -113,6 +114,10 @@ fn update_shotgun(
                 firing_timer.tick(time.delta());
                 if firing_timer.finished() {
                     shotgun.state = shotgun.next_state.clone();
+
+                    if matches!(shotgun.next_state, ShotgunState::Reloading { .. }) {
+                        writer.write(ShotgunEvent::Reload);
+                    }
                 }
             }
             ShotgunState::Reloading {
