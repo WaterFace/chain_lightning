@@ -14,7 +14,8 @@ pub struct ShotgunPlugin;
 
 impl Plugin for ShotgunPlugin {
     fn build(&self, app: &mut App) {
-        app.load_asset_on_startup::<ShotgunAssets>()
+        app.add_event::<ShotgunEvent>()
+            .load_asset_on_startup::<ShotgunAssets>()
             .add_systems(OnEnter(GameState::InGame), setup_view_model)
             .add_systems(
                 Update,
@@ -23,6 +24,14 @@ impl Plugin for ShotgunPlugin {
                     .run_if(in_state(GameState::InGame)),
             );
     }
+}
+
+// TODO: hook up sounds
+#[allow(unused)]
+#[derive(Debug, Clone, Copy, Event, Hash, PartialEq, Eq)]
+pub enum ShotgunEvent {
+    Fire,
+    Reload,
 }
 
 #[derive(Debug, Component)]
