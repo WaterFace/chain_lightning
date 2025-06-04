@@ -1,1 +1,6 @@
 skull.glb by soidev https://sketchfab.com/3d-models/skull-a1c936d72a9f4fa0ac15033339bd6efe
+old_sawed-off_double_barrel_shotgun.glb by Evan Petrov https://sketchfab.com/3d-models/old-sawed-off-double-barrel-shotgun-58008678adea46378d3fc3803625699b
+blender-volumentric-particles-effects.zip by rubberduck https://opengameart.org/content/25-special-effects-rendered-with-blender
+reload-123781.mp3 by Universfield https://pixabay.com/sound-effects/reload-123781/
+single-gunshot-53-101733.mp3 by morganpurkis https://pixabay.com/sound-effects/single-gunshot-53-101733/
+teeth-snapping-64629.mp3 by LucasDuff https://pixabay.com/sound-effects/teeth-snapping-64629/

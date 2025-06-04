@@ -25,6 +25,12 @@ struct FireSkullVisualRoot {
     t: f32,
 }
 
+#[derive(Debug, Default, Component)]
+struct FireSkullSkullVisual;
+
+#[derive(Debug, Component)]
+struct BaseEntity(Entity);
+
 fn bobbing_animation(
     time: Res<Time>,
     mut query: Query<(&mut Transform, &mut FireSkullVisualRoot)>,
@@ -42,7 +48,7 @@ fn bobbing_animation(
 
 fn spawn_fire_skull_visuals(
     mut commands: Commands,
-    visuals: Res<FireSkullVisuals>,
+    visuals: Res<FireSkullAssets>,
     query: Query<Entity, Added<FireSkull>>,
     mut sprite3d_params: Sprite3dParams,
     mut animation_offset: Local<f32>,
@@ -60,7 +66,7 @@ fn spawn_fire_skull_visuals(
                     layout: visuals.skull_atlas_layout.clone(),
                     index: 0,
                 };
-                let mut timer = Timer::from_seconds(0.3, TimerMode::Repeating);
+                let mut timer = Timer::from_seconds(0.5, TimerMode::Repeating);
                 timer.tick(Duration::from_secs_f32(*animation_offset));
                 let animation = AnimatedSprite3d {
                     current: 0,
@@ -75,13 +81,13 @@ fn spawn_fire_skull_visuals(
                     ..Default::default()
                 }
                 .bundle_with_atlas(&mut sprite3d_params, atlas);
-                s.spawn((skull, animation));
+                s.spawn((skull, animation, FireSkullSkullVisual, BaseEntity(entity)));
 
                 let atlas = TextureAtlas {
                     layout: visuals.fire_atlas_layout.clone(),
                     index: 0,
                 };
-                let mut timer = Timer::from_seconds(0.3, TimerMode::Repeating);
+                let mut timer = Timer::from_seconds(0.15, TimerMode::Repeating);
                 timer.tick(Duration::from_secs_f32(*animation_offset));
                 let animation = AnimatedSprite3d {
                     current: 0,
@@ -100,6 +106,7 @@ fn spawn_fire_skull_visuals(
                     fire,
                     animation,
                     Transform::from_xyz(0.0, 0.4, 0.05).with_scale(Vec3::splat(2.0)),
+                    BaseEntity(entity),
                 ));
 
                 // whatever
@@ -112,7 +119,7 @@ fn spawn_fire_skull_visuals(
 }
 
 #[derive(Resource, AssetCollection)]
-struct FireSkullVisuals {
+struct FireSkullAssets {
     #[asset(path = "textures/skull_atlas.png")]
     skull_atlas_texture: Handle<Image>,
     #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 1, rows = 2))]
@@ -122,6 +129,18 @@ struct FireSkullVisuals {
     fire_atlas_texture: Handle<Image>,
     #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 6, rows = 5))]
     fire_atlas_layout: Handle<TextureAtlasLayout>,
+}
+
+impl FireSkullAssets {
+    // frame indicies
+    const CLOSED: usize = 0;
+    #[allow(unused)]
+    const OPEN: usize = 1;
+}
+
+#[derive(Debug, Clone, Event)]
+pub enum FireSkullEvent {
+    Teeth(Entity),
 }
 
 fn move_skulls(
@@ -143,19 +162,35 @@ fn move_skulls(
     }
 }
 
+fn send_fire_skull_events(
+    mut writer: EventWriter<FireSkullEvent>,
+    query: Query<(&BaseEntity, &Sprite3d), (Changed<Sprite3d>, With<FireSkullSkullVisual>)>,
+) {
+    for (base_entity, sprite) in query.iter() {
+        if let Some(ref atlas) = sprite.texture_atlas {
+            if atlas.index == FireSkullAssets::CLOSED {
+                writer.write(FireSkullEvent::Teeth(base_entity.0));
+            }
+        }
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct FireSkullPlugin;
 
 impl Plugin for FireSkullPlugin {
     fn build(&self, app: &mut App) {
-        app.load_asset_on_startup::<FireSkullVisuals>().add_systems(
-            Update,
-            (
-                spawn_fire_skull_visuals,
-                bobbing_animation,
-                move_skulls.in_set(bevy_rapier3d::plugin::PhysicsSet::SyncBackend),
-            )
-                .run_if(in_state(GameState::InGame)),
-        );
+        app.add_event::<FireSkullEvent>()
+            .load_asset_on_startup::<FireSkullAssets>()
+            .add_systems(
+                Update,
+                (
+                    spawn_fire_skull_visuals,
+                    bobbing_animation,
+                    send_fire_skull_events,
+                    move_skulls.in_set(bevy_rapier3d::plugin::PhysicsSet::SyncBackend),
+                )
+                    .run_if(in_state(GameState::InGame)),
+            );
     }
 }

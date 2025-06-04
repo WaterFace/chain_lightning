@@ -16,9 +16,37 @@ opt-level = 1
 opt-level = 3
 
 [dependencies]
-bevy = "0.16"
+bevy = { version = "0.16", default-features = false, features = [
+    "bevy_asset",
+    "bevy_color",
+    "bevy_core_pipeline",
+    "bevy_gilrs",
+    "bevy_gizmos",
+    "bevy_mesh_picking_backend",
+    "bevy_pbr",
+    "bevy_picking",
+    "bevy_render",
+    "bevy_sprite",
+    "bevy_sprite_picking_backend",
+    "bevy_state",
+    "bevy_text",
+    "bevy_ui",
+    "bevy_ui_picking_backend",
+    "bevy_window",
+    "bevy_winit",
+    "custom_cursor",
+    "default_font",
+    "multi_threaded",
+    "png",
+    "smaa_luts",
+    "sysinfo_plugin",
+    "tonemapping_luts",
+    "webgl2",
+    "x11",
+] }
 bevy_asset_loader = { version = "0.23.0", features = ["2d"] }
 bevy_rapier3d = "0.30.0"
+bevy_seedling = "0.4.0"
 bevy_sprite3d = "5.0.0"
 leafwing-input-manager = "0.17.0"
 

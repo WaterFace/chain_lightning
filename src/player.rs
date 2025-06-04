@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_seedling::prelude::*;
 
 use crate::{character_controller::CharacterController, shotgun::Shotgun};
 
@@ -6,6 +7,7 @@ use crate::{character_controller::CharacterController, shotgun::Shotgun};
 #[require(
     Name::new("Player"),
     Visibility::Visible,
+    SpatialListener3D,
     CharacterController = CharacterController {
             max_speed: 15.0,
             acceleration: 10.0,

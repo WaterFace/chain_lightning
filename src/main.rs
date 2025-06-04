@@ -30,6 +30,7 @@ fn main() {
         // Add the states plugin first so asset loading is ready for any other plugin
         .add_plugins(states::StatesPlugin)
         .add_plugins((
+            audio::AudioPlugin,
             player::PlayerPlugin,
             character_controller::CharacterControllerPlugin,
             input::InputPlugin,
@@ -49,7 +50,7 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
-    const N: usize = 15;
+    const N: usize = 30;
     for i in 0..N {
         let t = (i + 1) as f32 / (N + 1) as f32;
         let p = Quat::from_axis_angle(Vec3::Y, t * 2.0 * std::f32::consts::PI)
