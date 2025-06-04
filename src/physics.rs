@@ -16,6 +16,7 @@ impl Plugin for PhysicsPlugin {
                 },
             ),
         )
-        .add_plugins(RapierDebugRenderPlugin::default().disabled());
+        // .add_plugins(RapierDebugRenderPlugin::default())
+        ;
     }
 }
