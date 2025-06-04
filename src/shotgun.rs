@@ -162,7 +162,7 @@ fn animate_shotgun(
 
 #[derive(AssetCollection, Resource, Debug)]
 struct ShotgunAssets {
-    #[asset(path = "shotgun_atlas.png")]
+    #[asset(path = "textures/shotgun_atlas.png")]
     shotgun_atlas_texture: Handle<Image>,
     #[asset(texture_atlas_layout(tile_size_x = 384, tile_size_y = 216, columns = 1, rows = 3))]
     shotgun_atlas_layout: Handle<TextureAtlasLayout>,

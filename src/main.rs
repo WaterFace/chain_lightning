@@ -1,6 +1,7 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
 
+mod audio;
 mod camera;
 mod character_controller;
 mod fire_skull;
@@ -71,7 +72,7 @@ fn setup(
             half_size: Vec2::ONE * 15.0,
         })),
         MeshMaterial3d(materials.add(StandardMaterial {
-            base_color_texture: Some(asset_server.load("checkers.png")),
+            base_color_texture: Some(asset_server.load("textures/checkers.png")),
             ..Default::default()
         })),
     ));
