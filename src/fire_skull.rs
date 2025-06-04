@@ -41,7 +41,7 @@ fn spawn_fire_skull_visuals(
                     frames: vec![0, 1],
                     timer: Timer::from_seconds(0.3, TimerMode::Repeating),
                 };
-                let skull_open = Sprite3dBuilder {
+                let skull = Sprite3dBuilder {
                     image: visuals.skull_atlas_texture.clone(),
                     alpha_mode: AlphaMode::Blend,
                     unlit: true,
@@ -49,7 +49,30 @@ fn spawn_fire_skull_visuals(
                     ..Default::default()
                 }
                 .bundle_with_atlas(&mut sprite3d_params, atlas);
-                s.spawn((skull_open, animation));
+                s.spawn((skull, animation));
+
+                let atlas = TextureAtlas {
+                    layout: visuals.fire_atlas_layout.clone(),
+                    index: 0,
+                };
+                let animation = AnimatedSprite3d {
+                    current: 0,
+                    frames: vec![13, 14, 15, 16, 17, 18, 19, 20, 21],
+                    timer: Timer::from_seconds(0.15, TimerMode::Repeating),
+                };
+                let fire = Sprite3dBuilder {
+                    image: visuals.fire_atlas_texture.clone(),
+                    alpha_mode: AlphaMode::Blend,
+                    unlit: true,
+                    pixels_per_metre: 128.0,
+                    ..Default::default()
+                }
+                .bundle_with_atlas(&mut sprite3d_params, atlas);
+                s.spawn((
+                    fire,
+                    animation,
+                    Transform::from_xyz(0.0, 0.4, 0.05).with_scale(Vec3::splat(2.0)),
+                ));
             })
             .id();
 
@@ -63,6 +86,11 @@ struct FireSkullVisuals {
     skull_atlas_texture: Handle<Image>,
     #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 1, rows = 2))]
     skull_atlas_layout: Handle<TextureAtlasLayout>,
+
+    #[asset(path = "flame_fire.png")]
+    fire_atlas_texture: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 6, rows = 5))]
+    fire_atlas_layout: Handle<TextureAtlasLayout>,
 }
 
 fn move_skulls(
