@@ -17,15 +17,18 @@ opt-level = 3
 
 [dependencies]
 bevy = { version = "0.16", default-features = false, features = [
+    "animation",
     "bevy_asset",
     "bevy_color",
     "bevy_core_pipeline",
     "bevy_gilrs",
     "bevy_gizmos",
+    "bevy_gltf",
     "bevy_mesh_picking_backend",
     "bevy_pbr",
     "bevy_picking",
     "bevy_render",
+    "bevy_scene",
     "bevy_sprite",
     "bevy_sprite_picking_backend",
     "bevy_state",
@@ -36,6 +39,8 @@ bevy = { version = "0.16", default-features = false, features = [
     "bevy_winit",
     "custom_cursor",
     "default_font",
+    "hdr",
+    "exr",
     "multi_threaded",
     "png",
     "smaa_luts",
