@@ -46,11 +46,16 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
-    // commands.spawn((Camera3d::default(), Transform::from_xyz(0.0, 0.0, 1.0)));
-    commands.spawn((
-        fire_skull::FireSkull::default(),
-        Transform::from_xyz(0.0, 0.0, -13.0),
-    ));
+    const N: usize = 15;
+    for i in 0..N {
+        let t = (i + 1) as f32 / (N + 1) as f32;
+        let p = Quat::from_axis_angle(Vec3::Y, t * 2.0 * std::f32::consts::PI)
+            * Vec3::new(0.0, 0.0, -3.0);
+        commands.spawn((
+            fire_skull::FireSkull::default(),
+            Transform::from_translation(p + Vec3::new(0.0, 0.0, -13.0)),
+        ));
+    }
     commands.spawn(player::Player::default());
     commands.spawn(AmbientLight {
         brightness: 1.0,
