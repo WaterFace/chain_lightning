@@ -50,7 +50,7 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
-    const N: usize = 30;
+    const N: usize = 10;
     for i in 0..N {
         let t = (i + 1) as f32 / (N + 1) as f32;
         let p = Quat::from_axis_angle(Vec3::Y, t * 2.0 * std::f32::consts::PI)
