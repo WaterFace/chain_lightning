@@ -1,10 +1,14 @@
 use bevy::{prelude::*, render::view::RenderLayers};
 use bevy_asset_loader::asset_collection::AssetCollection;
+use bevy_rapier3d::prelude::*;
 use bevy_sprite3d::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
+    character_controller::ReadHeading,
+    health::DamageEvent,
     input::PlayerAction,
+    physics::{ENEMY_GROUP, SHOTGUN_GROUP},
     player::Player,
     states::{AssetLoadingExt, GameState},
 };
@@ -19,8 +23,11 @@ impl Plugin for ShotgunPlugin {
             .add_systems(OnEnter(GameState::InGame), setup_view_model)
             .add_systems(
                 Update,
-                (update_shotgun, animate_shotgun)
-                    .chain()
+                (
+                    update_shotgun,
+                    animate_shotgun.after(update_shotgun),
+                    cast_to_hit,
+                )
                     .run_if(in_state(GameState::InGame)),
             );
     }
@@ -40,6 +47,9 @@ pub struct Shotgun {
     pub shots: usize,
     pub firing_time: f32,
     pub reloading_time: f32,
+    pub falloff_start: f32,
+    pub falloff_end: f32,
+    pub damage: f32,
 }
 
 impl Shotgun {
@@ -64,6 +74,9 @@ impl Default for Shotgun {
             shots: 2,
             firing_time: 0.05,
             reloading_time: 0.75,
+            falloff_start: 15.0,
+            falloff_end: 30.0,
+            damage: 100.0,
         }
     }
 }
@@ -129,6 +142,52 @@ fn update_shotgun(
                     shotgun.shots = 2;
                 }
             }
+        }
+    }
+}
+
+fn cast_to_hit(
+    reader: EventReader<ShotgunEvent>,
+    shotgun_query: Query<(&GlobalTransform, &ReadHeading, &Shotgun)>,
+    read_rapier_context: ReadRapierContext,
+    mut writer: EventWriter<DamageEvent>,
+) {
+    if reader.is_empty() {
+        return;
+    }
+
+    let Ok(context) = read_rapier_context.single() else {
+        error!("Failed to get rapier context");
+        return;
+    };
+
+    for (transform, heading, shotgun) in shotgun_query.iter() {
+        let pos = transform.translation();
+        let dir = heading.to_vec3();
+        let shape = Collider::ball(0.3);
+        let options = ShapeCastOptions::default();
+        let filter = QueryFilter::new().groups(CollisionGroups {
+            memberships: SHOTGUN_GROUP,
+            filters: ENEMY_GROUP,
+        });
+
+        if let Some((entity, hit)) =
+            context.cast_shape(pos, Rot::IDENTITY, dir, &shape, options, filter)
+        {
+            let dist = hit.time_of_impact;
+            let damage = if dist <= shotgun.falloff_start {
+                shotgun.damage
+            } else {
+                let t =
+                    (dist - shotgun.falloff_start) / (shotgun.falloff_end - shotgun.falloff_start);
+
+                f32::max(shotgun.damage * (1.0 - t), 0.0)
+            };
+            info!(
+                "hit entity {:?} at a distance of {} for {} damage",
+                entity, dist, damage
+            );
+            writer.write(DamageEvent { entity, damage });
         }
     }
 }

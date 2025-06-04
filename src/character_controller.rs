@@ -31,6 +31,12 @@ pub struct ReadHeading {
     pub heading: f32,
 }
 
+impl ReadHeading {
+    pub fn to_vec3(self) -> Vec3 {
+        Quat::from_axis_angle(Vec3::Y, self.heading) * (Vec3::NEG_Z)
+    }
+}
+
 #[derive(Component, Debug, Default)]
 pub struct CharacterControllerState {
     pub heading: f32,

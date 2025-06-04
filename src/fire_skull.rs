@@ -2,11 +2,13 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 use bevy_asset_loader::asset_collection::AssetCollection;
-use bevy_rapier3d::prelude::Collider;
+use bevy_rapier3d::prelude::*;
 use bevy_sprite3d::prelude::*;
 
 use crate::{
     character_controller::{CharacterController, CharacterControllerState},
+    health::Health,
+    physics::{ENEMY_GROUP, PLAYER_GROUP, SHOTGUN_GROUP},
     sprite::{AnimatedSprite3d, FaceCamera},
     states::{AssetLoadingExt, GameState},
 };
@@ -14,7 +16,9 @@ use crate::{
 #[derive(Debug, Default, Component)]
 #[require(
     Visibility,
+    Health::new(100.0),
     CharacterController = CharacterController { max_speed: 5.0, acceleration: 10.0 },
+    CollisionGroups::new(ENEMY_GROUP, PLAYER_GROUP | ENEMY_GROUP | SHOTGUN_GROUP),
     Collider::capsule_y(0.5, 0.25),
 )]
 pub struct FireSkull {}

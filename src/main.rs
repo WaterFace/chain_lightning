@@ -5,6 +5,7 @@ mod audio;
 mod camera;
 mod character_controller;
 mod fire_skull;
+mod health;
 mod input;
 mod physics;
 mod player;
@@ -39,6 +40,7 @@ fn main() {
             fire_skull::FireSkullPlugin,
             sprite::SpritePlugin,
             shotgun::ShotgunPlugin,
+            health::HealthPlugin,
         ))
         .add_systems(OnEnter(states::GameState::InGame), setup)
         .run();
