@@ -147,12 +147,12 @@ fn update_shotgun(
 }
 
 fn cast_to_hit(
-    reader: EventReader<ShotgunEvent>,
+    mut reader: EventReader<ShotgunEvent>,
     shotgun_query: Query<(&GlobalTransform, &ReadHeading, &Shotgun)>,
     read_rapier_context: ReadRapierContext,
     mut writer: EventWriter<DamageEvent>,
 ) {
-    if reader.is_empty() {
+    if !reader.read().any(|ev| matches!(ev, ShotgunEvent::Fire)) {
         return;
     }
 
