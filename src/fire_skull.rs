@@ -1,9 +1,10 @@
 use bevy::prelude::*;
+use bevy_asset_loader::asset_collection::AssetCollection;
 use bevy_sprite3d::prelude::*;
 
 use crate::{
     character_controller::{CharacterController, CharacterControllerState},
-    sprite::{AnimatedSprite3d, FaceCamera},
+    sprite::{AnimatedSprite3d, FaceCamera}, states::{AssetLoadingExt, GameState},
 };
 
 #[derive(Debug, Default, Component)]
@@ -55,25 +56,12 @@ fn spawn_fire_skull_visuals(
     }
 }
 
-#[derive(Resource)]
+#[derive(Resource, AssetCollection)]
 struct FireSkullVisuals {
+    #[asset(path = "skull_atlas.png")]
     skull_atlas_texture: Handle<Image>,
+    #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 1, rows = 2))]
     skull_atlas_layout: Handle<TextureAtlasLayout>,
-}
-
-fn load_fire_skull_visuals(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut layouts: ResMut<Assets<TextureAtlasLayout>>,
-) {
-    let texture = asset_server.load("skull_atlas.png");
-    let layout = TextureAtlasLayout::from_grid(UVec2::splat(128), 1, 2, None, None);
-    let fire_skull_visuals = FireSkullVisuals {
-        skull_atlas_texture: texture,
-        skull_atlas_layout: layouts.add(layout),
-    };
-
-    commands.insert_resource(fire_skull_visuals);
 }
 
 fn move_skulls(
@@ -101,11 +89,10 @@ pub struct FireSkullPlugin;
 impl Plugin for FireSkullPlugin {
     fn build(&self, app: &mut App) {
         // TODO: do this in a proper loading step
-        app.add_systems(Startup, load_fire_skull_visuals)
-            .add_systems(Update, spawn_fire_skull_visuals)
+        app.load_asset_on_startup::<FireSkullVisuals>()
             .add_systems(
                 Update,
-                move_skulls.in_set(bevy_rapier3d::plugin::PhysicsSet::SyncBackend),
+                (spawn_fire_skull_visuals, move_skulls.in_set(bevy_rapier3d::plugin::PhysicsSet::SyncBackend)).run_if(in_state(GameState::InGame)),
             );
     }
 }

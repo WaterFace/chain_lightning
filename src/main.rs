@@ -8,6 +8,7 @@ mod input;
 mod physics;
 mod player;
 mod sprite;
+mod states;
 
 fn main() {
     App::new()
@@ -24,6 +25,8 @@ fn main() {
                     default_sampler: bevy::image::ImageSamplerDescriptor::nearest(),
                 }),
         )
+        // Add the states plugin first so asset loading is ready for any other plugin
+        .add_plugins(states::StatesPlugin)
         .add_plugins((
             player::PlayerPlugin,
             character_controller::CharacterControllerPlugin,
@@ -33,7 +36,7 @@ fn main() {
             fire_skull::FireSkullPlugin,
             sprite::SpritePlugin,
         ))
-        .add_systems(Startup, setup)
+        .add_systems(OnEnter(states::GameState::InGame), setup)
         .run();
 }
 

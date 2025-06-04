@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use crate::input::{InputSettings, PlayerAction};
+use crate::{
+    input::{InputSettings, PlayerAction},
+    states::GameState,
+};
 use leafwing_input_manager::prelude::ActionState;
 
 #[derive(Debug, Component)]
@@ -139,7 +142,8 @@ impl Plugin for CharacterControllerPlugin {
             Update,
             (handle_input, set_velocity)
                 .chain()
-                .in_set(PhysicsSet::SyncBackend),
+                .in_set(PhysicsSet::SyncBackend)
+                .run_if(in_state(GameState::InGame)),
         )
         .insert_resource(AccumulatedInput::default());
     }

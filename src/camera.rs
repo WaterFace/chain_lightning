@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::character_controller::ReadHeading;
+use crate::{character_controller::ReadHeading, states::GameState};
 
 #[derive(Debug, Default, Component)]
 #[require(Name::new("Main Camera Entity"), Camera3d, Projection::Perspective(PerspectiveProjection {
@@ -34,6 +34,9 @@ pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (attach_camera_to_player, update_heading));
+        app.add_systems(
+            Update,
+            (attach_camera_to_player, update_heading).run_if(in_state(GameState::InGame)),
+        );
     }
 }
