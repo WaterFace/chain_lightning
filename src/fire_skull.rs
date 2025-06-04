@@ -4,12 +4,13 @@ use bevy_sprite3d::prelude::*;
 
 use crate::{
     character_controller::{CharacterController, CharacterControllerState},
-    sprite::{AnimatedSprite3d, FaceCamera}, states::{AssetLoadingExt, GameState},
+    sprite::{AnimatedSprite3d, FaceCamera},
+    states::{AssetLoadingExt, GameState},
 };
 
 #[derive(Debug, Default, Component)]
 #[require(
-    Visibility, 
+    Visibility,
     CharacterController = CharacterController { max_speed: 15.0, acceleration: 10.0 },
 )]
 pub struct FireSkull {}
@@ -89,10 +90,13 @@ pub struct FireSkullPlugin;
 impl Plugin for FireSkullPlugin {
     fn build(&self, app: &mut App) {
         // TODO: do this in a proper loading step
-        app.load_asset_on_startup::<FireSkullVisuals>()
-            .add_systems(
-                Update,
-                (spawn_fire_skull_visuals, move_skulls.in_set(bevy_rapier3d::plugin::PhysicsSet::SyncBackend)).run_if(in_state(GameState::InGame)),
-            );
+        app.load_asset_on_startup::<FireSkullVisuals>().add_systems(
+            Update,
+            (
+                spawn_fire_skull_visuals,
+                move_skulls.in_set(bevy_rapier3d::plugin::PhysicsSet::SyncBackend),
+            )
+                .run_if(in_state(GameState::InGame)),
+        );
     }
 }
