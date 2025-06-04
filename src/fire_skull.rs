@@ -125,7 +125,9 @@ struct FireSkullAssets {
     #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 1, rows = 2))]
     skull_atlas_layout: Handle<TextureAtlasLayout>,
 
-    #[asset(path = "textures/flame_fire.png")]
+    // use .dds here instead of .png, because for some reason
+    // bevy picks a bad image format which is not supported on web
+    #[asset(path = "textures/flame_fire.dds")]
     fire_atlas_texture: Handle<Image>,
     #[asset(texture_atlas_layout(tile_size_x = 128, tile_size_y = 128, columns = 6, rows = 5))]
     fire_atlas_layout: Handle<TextureAtlasLayout>,
