@@ -1,8 +1,13 @@
 use bevy::{prelude::*, render::view::RenderLayers};
 use bevy_asset_loader::asset_collection::AssetCollection;
 use bevy_sprite3d::prelude::*;
+use leafwing_input_manager::prelude::ActionState;
 
-use crate::states::{AssetLoadingExt, GameState};
+use crate::{
+    input::PlayerAction,
+    player::Player,
+    states::{AssetLoadingExt, GameState},
+};
 
 #[derive(Debug, Default)]
 pub struct ShotgunPlugin;
@@ -10,7 +15,134 @@ pub struct ShotgunPlugin;
 impl Plugin for ShotgunPlugin {
     fn build(&self, app: &mut App) {
         app.load_asset_on_startup::<ShotgunAssets>()
-            .add_systems(OnEnter(GameState::InGame), setup_view_model);
+            .add_systems(OnEnter(GameState::InGame), setup_view_model)
+            .add_systems(
+                Update,
+                (update_shotgun, animate_shotgun)
+                    .chain()
+                    .run_if(in_state(GameState::InGame)),
+            );
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct Shotgun {
+    pub state: ShotgunState,
+    pub next_state: ShotgunState,
+    pub shots: usize,
+    pub firing_time: f32,
+    pub reloading_time: f32,
+}
+
+impl Shotgun {
+    fn should_fire(&self, fire_pressed: bool) -> bool {
+        if fire_pressed && matches!(self.state, ShotgunState::Idle) && self.shots == 2 {
+            return true;
+        }
+
+        if !fire_pressed && matches!(self.state, ShotgunState::Idle) && self.shots == 1 {
+            return true;
+        }
+
+        false
+    }
+}
+
+impl Default for Shotgun {
+    fn default() -> Self {
+        Shotgun {
+            state: ShotgunState::default(),
+            next_state: ShotgunState::Idle,
+            shots: 2,
+            firing_time: 0.05,
+            reloading_time: 0.75,
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone)]
+pub enum ShotgunState {
+    #[default]
+    Idle,
+    Firing {
+        firing_timer: Timer,
+    },
+    Reloading {
+        reload_timer: Timer,
+    },
+}
+
+fn update_shotgun(
+    time: Res<Time>,
+    input: Res<ActionState<PlayerAction>>,
+    mut query: Query<&mut Shotgun>,
+) {
+    for mut shotgun in query.iter_mut() {
+        match shotgun.state {
+            ShotgunState::Idle => {
+                if !shotgun.should_fire(input.pressed(&PlayerAction::Fire)) {
+                    continue;
+                }
+                info!("Firing shotgun");
+                shotgun.state = ShotgunState::Firing {
+                    firing_timer: Timer::from_seconds(shotgun.firing_time, TimerMode::Once),
+                };
+                if shotgun.shots == 1 {
+                    shotgun.shots = 0;
+                    shotgun.next_state = ShotgunState::Reloading {
+                        reload_timer: Timer::from_seconds(shotgun.reloading_time, TimerMode::Once),
+                    }
+                } else {
+                    shotgun.shots -= 1;
+                    shotgun.next_state = ShotgunState::Idle
+                }
+            }
+
+            ShotgunState::Firing {
+                ref mut firing_timer,
+            } => {
+                firing_timer.tick(time.delta());
+                if firing_timer.finished() {
+                    shotgun.state = shotgun.next_state.clone();
+                }
+            }
+            ShotgunState::Reloading {
+                ref mut reload_timer,
+            } => {
+                reload_timer.tick(time.delta());
+                if reload_timer.finished() {
+                    shotgun.state = ShotgunState::Idle;
+                    shotgun.shots = 2;
+                }
+            }
+        }
+    }
+}
+
+fn animate_shotgun(
+    shotgun_query: Query<&Shotgun, With<Player>>,
+    mut view_model_query: Query<&mut Sprite3d, With<ShotgunViewModel>>,
+) {
+    let Ok(shotgun) = shotgun_query.single() else {
+        warn!("didn't find exactly one player with shotgun");
+        return;
+    };
+    for mut sprite in view_model_query.iter_mut() {
+        let Some(ref mut atlas) = sprite.texture_atlas else {
+            warn!("Shotgun sprite doesn't have a texture atlas");
+            continue;
+        };
+        match shotgun.state {
+            ShotgunState::Idle => {
+                atlas.index = ShotgunAssets::IDLE;
+            }
+            ShotgunState::Firing { .. } => {
+                atlas.index = ShotgunAssets::FIRING;
+            }
+            ShotgunState::Reloading { .. } => {
+                atlas.index = ShotgunAssets::RELOADING;
+            }
+        }
     }
 }
 
@@ -22,6 +154,13 @@ struct ShotgunAssets {
     shotgun_atlas_layout: Handle<TextureAtlasLayout>,
 }
 
+impl ShotgunAssets {
+    // frame indices
+    const IDLE: usize = 0;
+    const FIRING: usize = 1;
+    const RELOADING: usize = 2;
+}
+
 // use render layer 1 for view model stuff
 #[derive(Debug, Default, Component)]
 #[require(Camera3d, Camera { order: 1, ..Default::default() }, RenderLayers::layer(1), Projection::Orthographic(OrthographicProjection {
@@ -29,6 +168,9 @@ struct ShotgunAssets {
     ..OrthographicProjection::default_3d()
 }))]
 struct ViewmodelCamera;
+
+#[derive(Debug, Default, Component)]
+struct ShotgunViewModel;
 
 fn setup_view_model(
     mut commands: Commands,
@@ -41,7 +183,7 @@ fn setup_view_model(
         layout: shotgun_assets.shotgun_atlas_layout.clone(),
         index: 0,
     };
-    let shotgun = Sprite3dBuilder {
+    let shotgun_sprite = Sprite3dBuilder {
         image: shotgun_assets.shotgun_atlas_texture.clone(),
         alpha_mode: AlphaMode::Blend,
         unlit: true,
@@ -50,7 +192,8 @@ fn setup_view_model(
     }
     .bundle_with_atlas(&mut sprite3d_params, atlas);
     commands.spawn((
-        shotgun,
+        shotgun_sprite,
+        ShotgunViewModel,
         RenderLayers::layer(1),
         Transform::from_xyz(0.0, 0.0, -1.0),
     ));

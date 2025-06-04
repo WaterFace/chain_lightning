@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::character_controller::CharacterController;
+use crate::{character_controller::CharacterController, shotgun::Shotgun};
 
 #[derive(Debug, Default, Component)]
 #[require(
@@ -9,7 +9,8 @@ use crate::character_controller::CharacterController;
     CharacterController = CharacterController {
             max_speed: 15.0,
             acceleration: 10.0,
-        }
+        },
+    Shotgun,
 )]
 pub struct Player {}
 
