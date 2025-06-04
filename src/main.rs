@@ -7,6 +7,7 @@ mod fire_skull;
 mod input;
 mod physics;
 mod player;
+mod shotgun;
 mod sprite;
 mod states;
 
@@ -35,6 +36,7 @@ fn main() {
             camera::CameraPlugin,
             fire_skull::FireSkullPlugin,
             sprite::SpritePlugin,
+            shotgun::ShotgunPlugin,
         ))
         .add_systems(OnEnter(states::GameState::InGame), setup)
         .run();
