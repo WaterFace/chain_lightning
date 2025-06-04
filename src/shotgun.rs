@@ -92,7 +92,7 @@ fn update_shotgun(
                 if !shotgun.should_fire(input.pressed(&PlayerAction::Fire)) {
                     continue;
                 }
-                info!("Firing shotgun");
+
                 shotgun.state = ShotgunState::Firing {
                     firing_timer: Timer::from_seconds(shotgun.firing_time, TimerMode::Once),
                 };
