@@ -69,7 +69,7 @@ fn handle_damage(
             if player.is_vulnerable() {
                 health.current -= damage;
                 player.invulnerability_timer.reset();
-                player_hurt_writer.write(PlayerHurtEvent {});
+                player_hurt_writer.write(PlayerHurtEvent { damage: *damage });
             }
         } else {
             health.current -= damage;
