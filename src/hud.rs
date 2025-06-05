@@ -54,6 +54,7 @@ fn setup_hud(mut commands: Commands, assets: Res<HudAssets>) {
             font_size: FONT_SIZE,
             ..Default::default()
         },
+        TextShadow::default(),
         Node {
             position_type: PositionType::Absolute,
             left: Val::Percent(5.0),
@@ -70,6 +71,7 @@ fn setup_hud(mut commands: Commands, assets: Res<HudAssets>) {
             font_size: FONT_SIZE,
             ..Default::default()
         },
+        TextShadow::default(),
         Node {
             position_type: PositionType::Absolute,
             left: Val::Percent(5.0),
