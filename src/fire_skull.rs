@@ -120,7 +120,11 @@ fn spawn_fire_skull_visuals(
             })
             .id();
 
-        commands.entity(entity).add_child(visual_root);
+        if let Ok(mut c) = commands.get_entity(entity) {
+            c.add_child(visual_root);
+        } else {
+            commands.entity(visual_root).despawn();
+        }
     }
 }
 

@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::{explosion::ExplosionEvent, fire_skull::FireSkull, player::Player, states::GameState};
+use crate::{
+    explosion::ExplosionEvent, fire_skull::FireSkull, player::Player, spawner::SkullsKilled,
+    states::GameState,
+};
 
 #[derive(Debug, Default)]
 pub struct HealthPlugin;
@@ -37,6 +40,7 @@ fn handle_damage(
     mut commands: Commands,
     mut reader: EventReader<DamageEvent>,
     mut writer: EventWriter<ExplosionEvent>,
+    mut kill_count: ResMut<SkullsKilled>,
     mut query: Query<(
         &mut Health,
         &GlobalTransform,
@@ -46,7 +50,6 @@ fn handle_damage(
 ) {
     for DamageEvent { entity, damage } in reader.read() {
         let Ok((mut health, global_transform, player, skull)) = query.get_mut(*entity) else {
-            warn!("Couldn't get Health corresponding to entity {:?}", entity);
             continue;
         };
 
@@ -65,6 +68,7 @@ fn handle_damage(
                         scale: 1.0,
                         damage: 25.0,
                     });
+                    kill_count.count += 1;
                 }
             }
         }

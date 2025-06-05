@@ -156,17 +156,19 @@ fn play_skull_sounds(
     assets: Res<SoundAssets>,
 ) {
     use crate::fire_skull::FireSkullEvent;
-    for ev in reader.read() {
-        match ev {
-            FireSkullEvent::Teeth(entity) => {
-                if let Ok(mut c) = commands.get_entity(*entity) {
-                    c.with_child((
-                        SamplePlayer::new(assets.teeth.clone()),
-                        SpatialSoundEffectPool,
-                    ));
-                }
+
+    let mut n = 5;
+    for FireSkullEvent::Teeth(entity) in reader.read() {
+        if let Ok(mut c) = commands.get_entity(*entity) {
+            c.with_child((
+                SamplePlayer::new(assets.teeth.clone()),
+                SpatialSoundEffectPool,
+            ));
+            n -= 1;
+            if n < 0 {
+                return;
             }
-        };
+        }
     }
 }
 
