@@ -32,9 +32,6 @@ struct FireSkullVisualRoot {
 #[derive(Debug, Default, Component)]
 struct FireSkullSkullVisual;
 
-#[derive(Debug, Component)]
-struct BaseEntity(Entity);
-
 fn bobbing_animation(
     time: Res<Time>,
     mut query: Query<(&mut Transform, &mut FireSkullVisualRoot)>,
@@ -86,7 +83,7 @@ fn spawn_fire_skull_visuals(
                     ..Default::default()
                 }
                 .bundle_with_atlas(&mut sprite3d_params, atlas);
-                s.spawn((skull, animation, FireSkullSkullVisual, BaseEntity(entity)));
+                s.spawn((skull, animation, FireSkullSkullVisual));
 
                 let atlas = TextureAtlas {
                     layout: visuals.fire_atlas_layout.clone(),
@@ -112,7 +109,6 @@ fn spawn_fire_skull_visuals(
                     fire,
                     animation,
                     Transform::from_xyz(0.0, 0.4, 0.05).with_scale(Vec3::splat(2.0)),
-                    BaseEntity(entity),
                 ));
 
                 // whatever
@@ -143,17 +139,15 @@ struct FireSkullAssets {
     fire_atlas_layout: Handle<TextureAtlasLayout>,
 }
 
+#[allow(unused)]
 impl FireSkullAssets {
     // frame indicies
     const CLOSED: usize = 0;
-    #[allow(unused)]
     const OPEN: usize = 1;
 }
 
 #[derive(Debug, Clone, Event)]
-pub enum FireSkullEvent {
-    Teeth(Entity),
-}
+pub enum FireSkullEvent {}
 
 fn move_skulls(
     player_transform: Single<&GlobalTransform, With<crate::player::Player>>,
@@ -174,19 +168,6 @@ fn move_skulls(
     }
 }
 
-fn send_fire_skull_events(
-    mut writer: EventWriter<FireSkullEvent>,
-    query: Query<(&BaseEntity, &Sprite3d), (Changed<Sprite3d>, With<FireSkullSkullVisual>)>,
-) {
-    for (base_entity, sprite) in query.iter() {
-        if let Some(ref atlas) = sprite.texture_atlas {
-            if atlas.index == FireSkullAssets::CLOSED {
-                writer.write(FireSkullEvent::Teeth(base_entity.0));
-            }
-        }
-    }
-}
-
 #[derive(Debug, Default)]
 pub struct FireSkullPlugin;
 
@@ -199,7 +180,6 @@ impl Plugin for FireSkullPlugin {
                 (
                     spawn_fire_skull_visuals,
                     bobbing_animation,
-                    send_fire_skull_events,
                     move_skulls.in_set(bevy_rapier3d::plugin::PhysicsSet::SyncBackend),
                 )
                     .run_if(in_state(GameState::InGame)),

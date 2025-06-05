@@ -19,12 +19,7 @@ impl Plugin for AudioPlugin {
             .add_systems(Update, update_audio_settings)
             .add_systems(
                 Update,
-                (
-                    play_shotgun_sounds,
-                    play_skull_sounds,
-                    play_explosion_sounds,
-                )
-                    .run_if(in_state(GameState::InGame)),
+                (play_shotgun_sounds, play_explosion_sounds).run_if(in_state(GameState::InGame)),
             );
     }
 }
@@ -123,10 +118,6 @@ struct SoundAssets {
     #[asset(path = "sounds/gunshot.ogg")]
     gunshot: Handle<Sample>,
 
-    // skull sounds
-    #[asset(path = "sounds/teeth.ogg")]
-    teeth: Handle<Sample>,
-
     // explosion sounds
     #[asset(path = "sounds/explosion.ogg")]
     explosion: Handle<Sample>,
@@ -147,28 +138,6 @@ fn play_shotgun_sounds(
                 commands.spawn((SamplePlayer::new(assets.reload.clone()), SoundEffectPool))
             }
         };
-    }
-}
-
-fn play_skull_sounds(
-    mut commands: Commands,
-    mut reader: EventReader<crate::fire_skull::FireSkullEvent>,
-    assets: Res<SoundAssets>,
-) {
-    use crate::fire_skull::FireSkullEvent;
-
-    let mut n = 5;
-    for FireSkullEvent::Teeth(entity) in reader.read() {
-        if let Ok(mut c) = commands.get_entity(*entity) {
-            c.with_child((
-                SamplePlayer::new(assets.teeth.clone()),
-                SpatialSoundEffectPool,
-            ));
-            n -= 1;
-            if n < 0 {
-                return;
-            }
-        }
     }
 }
 
