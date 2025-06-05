@@ -7,6 +7,7 @@ mod character_controller;
 mod explosion;
 mod fire_skull;
 mod health;
+mod hud;
 mod input;
 mod level;
 mod physics;
@@ -52,6 +53,8 @@ fn main() {
             rand::RandPlugin,
             score::ScorePlugin,
         ))
+        // too many plugins, starting another tuple
+        .add_plugins((hud::HudPlugin,))
         .add_systems(OnEnter(states::GameState::InGame), setup)
         .run();
 }

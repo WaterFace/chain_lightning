@@ -56,6 +56,7 @@ bevy_rapier3d = "0.30.0"
 bevy_seedling = "0.4.0"
 bevy_sprite3d = "5.0.0"
 leafwing-input-manager = "0.17.0"
+num-format = "0.4.4"
 
 # These lints may be important signals about code quality, but normal Bevy code
 # commonly triggers them and the CI workflow treats them as errors, so we've
