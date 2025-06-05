@@ -4,6 +4,7 @@ use bevy::prelude::*;
 mod audio;
 mod camera;
 mod character_controller;
+mod explosion;
 mod fire_skull;
 mod health;
 mod input;
@@ -41,6 +42,7 @@ fn main() {
             sprite::SpritePlugin,
             shotgun::ShotgunPlugin,
             health::HealthPlugin,
+            explosion::ExplosionPlugin,
         ))
         .add_systems(OnEnter(states::GameState::InGame), setup)
         .run();

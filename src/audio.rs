@@ -19,7 +19,12 @@ impl Plugin for AudioPlugin {
             .add_systems(Update, update_audio_settings)
             .add_systems(
                 Update,
-                (play_shotgun_sounds, play_skull_sounds).run_if(in_state(GameState::InGame)),
+                (
+                    play_shotgun_sounds,
+                    play_skull_sounds,
+                    play_explosion_sounds,
+                )
+                    .run_if(in_state(GameState::InGame)),
             );
     }
 }
@@ -121,6 +126,10 @@ struct SoundAssets {
     // skull sounds
     #[asset(path = "sounds/teeth.ogg")]
     teeth: Handle<Sample>,
+
+    // explosion sounds
+    #[asset(path = "sounds/explosion.ogg")]
+    explosion: Handle<Sample>,
 }
 
 fn play_shotgun_sounds(
@@ -158,5 +167,19 @@ fn play_skull_sounds(
                 }
             }
         };
+    }
+}
+
+fn play_explosion_sounds(
+    mut commands: Commands,
+    mut reader: EventReader<crate::explosion::ExplosionEvent>,
+    assets: Res<SoundAssets>,
+) {
+    for crate::explosion::ExplosionEvent { pos, .. } in reader.read() {
+        commands.spawn((
+            SamplePlayer::new(assets.explosion.clone()),
+            SpatialSoundEffectPool,
+            Transform::from_translation(*pos),
+        ));
     }
 }

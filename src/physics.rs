@@ -24,3 +24,4 @@ impl Plugin for PhysicsPlugin {
 pub const PLAYER_GROUP: Group = Group::GROUP_1;
 pub const ENEMY_GROUP: Group = Group::GROUP_2;
 pub const SHOTGUN_GROUP: Group = Group::GROUP_3;
+pub const EXPLOSION_GROUP: Group = Group::GROUP_4;

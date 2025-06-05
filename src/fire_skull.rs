@@ -8,7 +8,7 @@ use bevy_sprite3d::prelude::*;
 use crate::{
     character_controller::{CharacterController, CharacterControllerState},
     health::Health,
-    physics::{ENEMY_GROUP, PLAYER_GROUP, SHOTGUN_GROUP},
+    physics::{ENEMY_GROUP, EXPLOSION_GROUP, PLAYER_GROUP, SHOTGUN_GROUP},
     sprite::{AnimatedSprite3d, FaceCamera},
     states::{AssetLoadingExt, GameState},
 };
@@ -18,7 +18,7 @@ use crate::{
     Visibility,
     Health::new(10.0),
     CharacterController = CharacterController { max_speed: 5.0, acceleration: 10.0 },
-    CollisionGroups::new(ENEMY_GROUP, PLAYER_GROUP | ENEMY_GROUP | SHOTGUN_GROUP),
+    CollisionGroups::new(ENEMY_GROUP, PLAYER_GROUP | ENEMY_GROUP | SHOTGUN_GROUP | EXPLOSION_GROUP),
     Collider::capsule_y(0.5, 0.25),
 )]
 pub struct FireSkull {}

@@ -2,3 +2,4 @@
 ffmpeg -i originals/reload-123781.mp3 -c:a libvorbis -q:a 4 ../assets/sounds/reload.ogg
 ffmpeg -i originals/single-gunshot-53-101733.mp3 -c:a libvorbis -q:a 4 ../assets/sounds/gunshot.ogg
 ffmpeg -i originals/teeth-snapping-64629.mp3 -c:a libvorbis -q:a 4 ../assets/sounds/teeth.ogg
+ffmpeg -i originals/explosion-312361.mp3 -c:a libvorbis -q:a 4 ../assets/sounds/explosion.ogg

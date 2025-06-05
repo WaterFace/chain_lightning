@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{fire_skull::FireSkull, player::Player, states::GameState};
+use crate::{explosion::ExplosionEvent, fire_skull::FireSkull, player::Player, states::GameState};
 
 #[derive(Debug, Default)]
 pub struct HealthPlugin;
@@ -36,10 +36,16 @@ pub struct DamageEvent {
 fn handle_damage(
     mut commands: Commands,
     mut reader: EventReader<DamageEvent>,
-    mut query: Query<(&mut Health, Option<&Player>, Option<&FireSkull>)>,
+    mut writer: EventWriter<ExplosionEvent>,
+    mut query: Query<(
+        &mut Health,
+        &GlobalTransform,
+        Option<&Player>,
+        Option<&FireSkull>,
+    )>,
 ) {
     for DamageEvent { entity, damage } in reader.read() {
-        let Ok((mut health, player, skull)) = query.get_mut(*entity) else {
+        let Ok((mut health, global_transform, player, skull)) = query.get_mut(*entity) else {
             warn!("Couldn't get Health corresponding to entity {:?}", entity);
             continue;
         };
@@ -52,9 +58,13 @@ fn handle_damage(
                 info!("player died, do something");
             }
             if skull.is_some() {
-                info!("skull died, deleting it. Do something more fancy later");
                 if let Ok(mut c) = commands.get_entity(*entity) {
                     c.despawn();
+                    writer.write(ExplosionEvent {
+                        pos: global_transform.translation(),
+                        scale: 1.0,
+                        damage: 25.0,
+                    });
                 }
             }
         }

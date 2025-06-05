@@ -5,7 +5,7 @@ use bevy_seedling::prelude::*;
 use crate::{
     character_controller::CharacterController,
     health::Health,
-    physics::{ENEMY_GROUP, PLAYER_GROUP},
+    physics::{ENEMY_GROUP, EXPLOSION_GROUP, PLAYER_GROUP},
     shotgun::Shotgun,
 };
 
@@ -19,7 +19,7 @@ use crate::{
             max_speed: 15.0,
             acceleration: 10.0,
         },
-    CollisionGroups::new(PLAYER_GROUP, ENEMY_GROUP),
+    CollisionGroups::new(PLAYER_GROUP, ENEMY_GROUP | EXPLOSION_GROUP),
     Shotgun,
 )]
 pub struct Player {}
