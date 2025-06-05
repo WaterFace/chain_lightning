@@ -15,11 +15,15 @@ impl Plugin for HealthPlugin {
 #[derive(Debug, Component)]
 pub struct Health {
     pub current: f32,
+    pub dead: bool,
 }
 
 impl Health {
     pub fn new(health: f32) -> Self {
-        Health { current: health }
+        Health {
+            current: health,
+            dead: health <= 0.0,
+        }
     }
 }
 
@@ -42,7 +46,8 @@ fn handle_damage(
 
         health.current -= damage;
 
-        if health.current <= 0.0 {
+        if health.current <= 0.0 && !health.dead {
+            health.dead = true;
             if player.is_some() {
                 info!("player died, do something");
             }
