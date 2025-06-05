@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
-    explosion::ExplosionEvent, fire_skull::FireSkull, player::Player, spawner::SkullsKilled,
-    states::GameState,
+    explosion::ExplosionEvent, fire_skull::FireSkull, player::Player, score::ScoreEvent,
+    spawner::SkullsKilled, states::GameState,
 };
 
 #[derive(Debug, Default)]
@@ -34,12 +34,14 @@ impl Health {
 pub struct DamageEvent {
     pub entity: Entity,
     pub damage: f32,
+    pub chain: u64,
 }
 
 fn handle_damage(
     mut commands: Commands,
     mut reader: EventReader<DamageEvent>,
-    mut writer: EventWriter<ExplosionEvent>,
+    mut explosion_writer: EventWriter<ExplosionEvent>,
+    mut score_writer: EventWriter<ScoreEvent>,
     mut kill_count: ResMut<SkullsKilled>,
     mut query: Query<(
         &mut Health,
@@ -48,7 +50,12 @@ fn handle_damage(
         Option<&FireSkull>,
     )>,
 ) {
-    for DamageEvent { entity, damage } in reader.read() {
+    for DamageEvent {
+        entity,
+        damage,
+        chain,
+    } in reader.read()
+    {
         let Ok((mut health, global_transform, player, skull)) = query.get_mut(*entity) else {
             continue;
         };
@@ -63,12 +70,14 @@ fn handle_damage(
             if skull.is_some() {
                 if let Ok(mut c) = commands.get_entity(*entity) {
                     c.despawn();
-                    writer.write(ExplosionEvent {
+                    explosion_writer.write(ExplosionEvent {
                         pos: global_transform.translation(),
                         scale: 1.0,
                         damage: 25.0,
+                        chain: *chain + 1,
                     });
                     kill_count.count += 1;
+                    score_writer.write(ScoreEvent { chain: *chain });
                 }
             }
         }

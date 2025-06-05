@@ -12,6 +12,7 @@ mod level;
 mod physics;
 mod player;
 mod rand;
+mod score;
 mod shotgun;
 mod spawner;
 mod sprite;
@@ -49,6 +50,7 @@ fn main() {
             level::LevelPlugin,
             spawner::SpawnerPlugin,
             rand::RandPlugin,
+            score::ScorePlugin,
         ))
         .add_systems(OnEnter(states::GameState::InGame), setup)
         .run();

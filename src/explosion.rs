@@ -29,6 +29,7 @@ pub struct ExplosionEvent {
     pub pos: Vec3,
     pub scale: f32,
     pub damage: f32,
+    pub chain: u64,
 }
 
 #[derive(Debug, Resource, AssetCollection)]
@@ -56,7 +57,13 @@ fn explosion_collision(
         memberships: EXPLOSION_GROUP,
         filters: ENEMY_GROUP | PLAYER_GROUP,
     });
-    for ExplosionEvent { pos, scale, damage } in reader.read() {
+    for ExplosionEvent {
+        pos,
+        scale,
+        damage,
+        chain,
+    } in reader.read()
+    {
         let radius = 2.5 * scale;
         let shape = Collider::ball(radius);
         context.intersections_with_shape(*pos, Quat::IDENTITY, &shape, filter, |entity| {
@@ -65,7 +72,11 @@ fn explosion_collision(
                 let damage = damage * (1.0 - dist / radius).max(0.0);
 
                 info!("explosion hit entity {}, dealing {} damage", entity, damage);
-                writer.write(DamageEvent { entity, damage });
+                writer.write(DamageEvent {
+                    entity,
+                    damage,
+                    chain: *chain,
+                });
             }
 
             // return true to keep searching

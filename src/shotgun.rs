@@ -187,7 +187,11 @@ fn cast_to_hit(
                 "hit entity {:?} at a distance of {} for {} damage",
                 entity, dist, damage
             );
-            writer.write(DamageEvent { entity, damage });
+            writer.write(DamageEvent {
+                entity,
+                damage,
+                chain: 0,
+            });
         }
     }
 }
