@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 use crate::{
-    input::{InputSettings, PlayerAction},
+    input::{InputAction, InputSettings, InputState},
     states::GameState,
 };
 use leafwing_input_manager::prelude::ActionState;
@@ -61,33 +61,39 @@ impl AccumulatedInput {
 
 fn handle_input(
     mut accumulated: ResMut<AccumulatedInput>,
-    input: Res<ActionState<PlayerAction>>,
+    input: Res<ActionState<InputAction>>,
     input_settings: Res<InputSettings>,
+    input_state: Res<InputState>,
     mut query: Query<
         (&CharacterController, &mut CharacterControllerState),
         With<crate::player::Player>,
     >,
 ) {
     // movement is oriented as if the player is facing in the negative Z direction
-    if input.pressed(&PlayerAction::MoveForward) {
+    if input.pressed(&InputAction::MoveForward) {
         accumulated.movement += Vec3::NEG_Z;
     }
-    if input.pressed(&PlayerAction::MoveBackward) {
+    if input.pressed(&InputAction::MoveBackward) {
         accumulated.movement += Vec3::Z;
     }
 
-    if input.pressed(&PlayerAction::StrafeLeft) {
+    if input.pressed(&InputAction::StrafeLeft) {
         accumulated.movement += Vec3::NEG_X;
     }
-    if input.pressed(&PlayerAction::StrafeRight) {
+    if input.pressed(&InputAction::StrafeRight) {
         accumulated.movement += Vec3::X;
     }
 
-    if input.pressed(&PlayerAction::TurnLeft) {
+    if input.pressed(&InputAction::TurnLeft) {
         accumulated.turn += 1.0;
     }
-    if input.pressed(&PlayerAction::TurnRight) {
+    if input.pressed(&InputAction::TurnRight) {
         accumulated.turn -= 1.0;
+    }
+    if input_state.locked_cursor {
+        if let Some(axis_data) = input.axis_data(&InputAction::TurnAxis) {
+            accumulated.turn -= axis_data.value * input_settings.mouse_sensitivity;
+        }
     }
 
     for (player, mut physics_state) in query.iter_mut() {

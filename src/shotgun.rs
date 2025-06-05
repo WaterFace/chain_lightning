@@ -7,7 +7,7 @@ use leafwing_input_manager::prelude::ActionState;
 use crate::{
     character_controller::ReadHeading,
     health::DamageEvent,
-    input::PlayerAction,
+    input::InputAction,
     physics::{ENEMY_GROUP, SHOTGUN_GROUP},
     player::Player,
     states::{AssetLoadingExt, GameState},
@@ -95,14 +95,14 @@ pub enum ShotgunState {
 
 fn update_shotgun(
     time: Res<Time>,
-    input: Res<ActionState<PlayerAction>>,
+    input: Res<ActionState<InputAction>>,
     mut query: Query<&mut Shotgun>,
     mut writer: EventWriter<ShotgunEvent>,
 ) {
     for mut shotgun in query.iter_mut() {
         match shotgun.state {
             ShotgunState::Idle => {
-                if !shotgun.should_fire(input.pressed(&PlayerAction::Fire)) {
+                if !shotgun.should_fire(input.pressed(&InputAction::Fire)) {
                     continue;
                 }
 
