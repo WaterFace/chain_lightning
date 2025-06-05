@@ -76,6 +76,7 @@ fn spawn_fire_skull_visuals(
                     current: 0,
                     frames: vec![0, 1],
                     timer,
+                    destroy_when_finished: false,
                 };
                 let skull = Sprite3dBuilder {
                     image: visuals.skull_atlas_texture.clone(),
@@ -97,6 +98,7 @@ fn spawn_fire_skull_visuals(
                     current: 0,
                     frames: vec![13, 14, 15, 16, 17, 18, 19, 20, 21],
                     timer,
+                    destroy_when_finished: false,
                 };
                 let fire = Sprite3dBuilder {
                     image: visuals.fire_atlas_texture.clone(),

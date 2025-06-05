@@ -49,10 +49,15 @@ pub struct AnimatedSprite3d {
     pub frames: Vec<usize>,
     pub current: usize,
     pub timer: Timer,
+    pub destroy_when_finished: bool,
 }
 
-fn animate_sprites(time: Res<Time>, mut query: Query<(&mut AnimatedSprite3d, &mut Sprite3d)>) {
-    for (mut animation, mut sprite) in query.iter_mut() {
+fn animate_sprites(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(Entity, &mut AnimatedSprite3d, &mut Sprite3d)>,
+) {
+    for (entity, mut animation, mut sprite) in query.iter_mut() {
         animation.timer.tick(time.delta());
         if animation.timer.just_finished() {
             let Some(ref mut atlas) = sprite.texture_atlas else {
@@ -62,6 +67,11 @@ fn animate_sprites(time: Res<Time>, mut query: Query<(&mut AnimatedSprite3d, &mu
 
             atlas.index = animation.frames[animation.current];
             animation.current += 1;
+            if animation.destroy_when_finished && animation.current == animation.frames.len() {
+                if let Ok(mut c) = commands.get_entity(entity) {
+                    c.despawn();
+                }
+            }
             animation.current %= animation.frames.len();
         }
     }
