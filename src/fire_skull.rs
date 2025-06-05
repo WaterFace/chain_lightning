@@ -16,7 +16,7 @@ use crate::{
 #[derive(Debug, Default, Component)]
 #[require(
     Visibility,
-    Health::new(100.0),
+    Health::new(10.0),
     CharacterController = CharacterController { max_speed: 5.0, acceleration: 10.0 },
     CollisionGroups::new(ENEMY_GROUP, PLAYER_GROUP | ENEMY_GROUP | SHOTGUN_GROUP),
     Collider::capsule_y(0.5, 0.25),

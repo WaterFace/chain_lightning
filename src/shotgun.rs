@@ -76,7 +76,7 @@ impl Default for Shotgun {
             reloading_time: 1.0,
             falloff_start: 15.0,
             falloff_end: 30.0,
-            damage: 100.0,
+            damage: 10.0,
         }
     }
 }
