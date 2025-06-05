@@ -19,7 +19,12 @@ impl Plugin for AudioPlugin {
             .add_systems(Update, update_audio_settings)
             .add_systems(
                 Update,
-                (play_shotgun_sounds, play_explosion_sounds).run_if(in_state(GameState::InGame)),
+                (
+                    play_shotgun_sounds,
+                    play_explosion_sounds,
+                    play_spawner_sounds,
+                )
+                    .run_if(in_state(GameState::InGame)),
             );
     }
 }
@@ -121,6 +126,10 @@ struct SoundAssets {
     // explosion sounds
     #[asset(path = "sounds/explosion.ogg")]
     explosion: Handle<Sample>,
+
+    // spawner sounds
+    #[asset(path = "sounds/portal.ogg")]
+    portal: Handle<Sample>,
 }
 
 fn play_shotgun_sounds(
@@ -150,6 +159,25 @@ fn play_explosion_sounds(
         commands.spawn((
             SamplePlayer::new(assets.explosion.clone()),
             SpatialSoundEffectPool,
+            Transform::from_translation(*pos),
+        ));
+    }
+}
+
+fn play_spawner_sounds(
+    mut commands: Commands,
+    mut reader: EventReader<crate::spawner::CreateSpawnerEvent>,
+    assets: Res<SoundAssets>,
+) {
+    for crate::spawner::CreateSpawnerEvent { pos, .. } in reader.read() {
+        commands.spawn((
+            SamplePlayer::new(assets.portal.clone()),
+            SpatialSoundEffectPool,
+            sample_effects!(SpatialBasicNode {
+                damping_distance: -1.0,
+                volume: Volume::Linear(2.0),
+                ..Default::default()
+            }),
             Transform::from_translation(*pos),
         ));
     }
