@@ -193,7 +193,7 @@ fn play_player_sounds(
     mut reader: EventReader<crate::player::PlayerHurtEvent>,
     assets: Res<SoundAssets>,
 ) {
-    for crate::player::PlayerHurtEvent { damage } in reader.read() {
+    for crate::player::PlayerHurtEvent { .. } in reader.read() {
         commands.spawn((SamplePlayer::new(assets.oof.clone()), SoundEffectPool));
     }
 }

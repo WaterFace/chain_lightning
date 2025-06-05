@@ -62,6 +62,4 @@ fn update_player(time: Res<Time>, mut query: Query<&mut Player>) {
 }
 
 #[derive(Debug, Event)]
-pub struct PlayerHurtEvent {
-    pub damage: f32,
-}
+pub struct PlayerHurtEvent {}
