@@ -23,6 +23,7 @@ impl Plugin for AudioPlugin {
                     play_shotgun_sounds,
                     play_explosion_sounds,
                     play_spawner_sounds,
+                    play_player_sounds,
                 )
                     .run_if(in_state(GameState::InGame)),
             );
@@ -130,6 +131,10 @@ struct SoundAssets {
     // spawner sounds
     #[asset(path = "sounds/portal.ogg")]
     portal: Handle<Sample>,
+
+    // player sounds
+    #[asset(path = "sounds/oof.ogg")]
+    oof: Handle<Sample>,
 }
 
 fn play_shotgun_sounds(
@@ -180,5 +185,15 @@ fn play_spawner_sounds(
             }),
             Transform::from_translation(*pos),
         ));
+    }
+}
+
+fn play_player_sounds(
+    mut commands: Commands,
+    mut reader: EventReader<crate::player::PlayerHurtEvent>,
+    assets: Res<SoundAssets>,
+) {
+    for crate::player::PlayerHurtEvent { .. } in reader.read() {
+        commands.spawn((SamplePlayer::new(assets.oof.clone()), SoundEffectPool));
     }
 }

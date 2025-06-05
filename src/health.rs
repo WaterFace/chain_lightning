@@ -1,8 +1,12 @@
 use bevy::prelude::*;
 
 use crate::{
-    explosion::ExplosionEvent, fire_skull::FireSkull, player::Player, score::ScoreEvent,
-    spawner::SkullsKilled, states::GameState,
+    explosion::ExplosionEvent,
+    fire_skull::FireSkull,
+    player::{Player, PlayerHurtEvent},
+    score::ScoreEvent,
+    spawner::SkullsKilled,
+    states::GameState,
 };
 
 #[derive(Debug, Default)]
@@ -41,12 +45,13 @@ fn handle_damage(
     mut commands: Commands,
     mut reader: EventReader<DamageEvent>,
     mut explosion_writer: EventWriter<ExplosionEvent>,
+    mut player_hurt_writer: EventWriter<PlayerHurtEvent>,
     mut score_writer: EventWriter<ScoreEvent>,
     mut kill_count: ResMut<SkullsKilled>,
     mut query: Query<(
         &mut Health,
         &GlobalTransform,
-        Option<&Player>,
+        Option<&mut Player>,
         Option<&FireSkull>,
     )>,
 ) {
@@ -56,11 +61,19 @@ fn handle_damage(
         chain,
     } in reader.read()
     {
-        let Ok((mut health, global_transform, player, skull)) = query.get_mut(*entity) else {
+        let Ok((mut health, global_transform, mut player, skull)) = query.get_mut(*entity) else {
             continue;
         };
 
-        health.current -= damage;
+        if let Some(ref mut player) = player {
+            if player.is_vulnerable() {
+                health.current -= damage;
+                player.invulnerability_timer.reset();
+                player_hurt_writer.write(PlayerHurtEvent {});
+            }
+        } else {
+            health.current -= damage;
+        }
 
         if health.current <= 0.0 && !health.dead {
             health.dead = true;
