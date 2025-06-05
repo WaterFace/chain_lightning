@@ -8,6 +8,7 @@ mod explosion;
 mod fire_skull;
 mod health;
 mod input;
+mod level;
 mod physics;
 mod player;
 mod shotgun;
@@ -43,42 +44,22 @@ fn main() {
             shotgun::ShotgunPlugin,
             health::HealthPlugin,
             explosion::ExplosionPlugin,
+            level::LevelPlugin,
         ))
         .add_systems(OnEnter(states::GameState::InGame), setup)
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    asset_server: Res<AssetServer>,
-) {
-    const N: usize = 10;
-    for i in 0..N {
-        let t = (i + 1) as f32 / (N + 1) as f32;
-        let p = Quat::from_axis_angle(Vec3::Y, t * 2.0 * std::f32::consts::PI)
-            * Vec3::new(0.0, 0.0, -3.0);
-        commands.spawn((
-            fire_skull::FireSkull::default(),
-            Transform::from_translation(p + Vec3::new(0.0, 0.0, -13.0)),
-        ));
-    }
+fn setup(mut commands: Commands) {
+    // const N: usize = 10;
+    // for i in 0..N {
+    //     let t = (i + 1) as f32 / (N + 1) as f32;
+    //     let p = Quat::from_axis_angle(Vec3::Y, t * 2.0 * std::f32::consts::PI)
+    //         * Vec3::new(0.0, 0.0, -3.0);
+    //     commands.spawn((
+    //         fire_skull::FireSkull::default(),
+    //         Transform::from_translation(p + Vec3::new(0.0, 0.0, -13.0)),
+    //     ));
+    // }
     commands.spawn(player::Player::default());
-    commands.spawn(AmbientLight {
-        brightness: 1.0,
-        ..Default::default()
-    });
-
-    commands.spawn((
-        Transform::from_xyz(0.0, -1.0, 0.0),
-        Mesh3d(meshes.add(Plane3d {
-            normal: Dir3::Y,
-            half_size: Vec2::ONE * 15.0,
-        })),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            base_color_texture: Some(asset_server.load("textures/checkers.png")),
-            ..Default::default()
-        })),
-    ));
 }
