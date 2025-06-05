@@ -3,8 +3,29 @@ use bevy_asset_loader::asset_collection::AssetCollection;
 
 use crate::{
     character_controller::ReadHeading,
-    states::{AppState, AssetLoadingExt, GameState},
+    states::{AppState, AssetLoadingExt, GameState, PauseState},
 };
+
+#[derive(Debug, Default)]
+pub struct CameraPlugin;
+
+impl Plugin for CameraPlugin {
+    fn build(&self, app: &mut App) {
+        app.load_asset_on_startup::<SkyboxAssets>()
+            .add_systems(
+                OnTransition {
+                    exited: AppState::AssetLoading,
+                    entered: AppState::Ready,
+                },
+                fix_skybox_image,
+            )
+            .add_systems(
+                Update,
+                (attach_camera_to_player, update_heading)
+                    .run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
+            );
+    }
+}
 
 #[derive(Debug, Default, Component)]
 #[require(Name::new("Main Camera Entity"), Camera3d, Projection::Perspective(PerspectiveProjection {
@@ -56,23 +77,4 @@ fn fix_skybox_image(assets: Res<SkyboxAssets>, mut images: ResMut<Assets<Image>>
 struct SkyboxAssets {
     #[asset(path = "textures/skybox.png")]
     skybox: Handle<Image>,
-}
-
-pub struct CameraPlugin;
-
-impl Plugin for CameraPlugin {
-    fn build(&self, app: &mut App) {
-        app.load_asset_on_startup::<SkyboxAssets>()
-            .add_systems(
-                OnTransition {
-                    exited: AppState::AssetLoading,
-                    entered: AppState::Ready,
-                },
-                fix_skybox_image,
-            )
-            .add_systems(
-                Update,
-                (attach_camera_to_player, update_heading).run_if(in_state(GameState::InGame)),
-            );
-    }
 }

@@ -1,7 +1,20 @@
 use bevy::prelude::*;
 use bevy_sprite3d::prelude::*;
 
-use crate::states::GameState;
+use crate::states::{GameState, PauseState};
+
+#[derive(Debug, Default)]
+pub struct SpritePlugin;
+
+impl Plugin for SpritePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(Sprite3dPlugin).add_systems(
+            Update,
+            (animate_sprites, face_camera)
+                .run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
+        );
+    }
+}
 
 #[derive(Debug, Component)]
 pub struct FaceCamera {
@@ -74,17 +87,5 @@ fn animate_sprites(
             }
             animation.current %= animation.frames.len();
         }
-    }
-}
-
-#[derive(Debug, Default)]
-pub struct SpritePlugin;
-
-impl Plugin for SpritePlugin {
-    fn build(&self, app: &mut App) {
-        app.add_plugins(Sprite3dPlugin).add_systems(
-            Update,
-            (animate_sprites, face_camera).run_if(in_state(GameState::InGame)),
-        );
     }
 }

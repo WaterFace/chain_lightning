@@ -10,7 +10,7 @@ use crate::{
     input::InputAction,
     physics::{ENEMY_GROUP, SHOTGUN_GROUP},
     player::Player,
-    states::{AssetLoadingExt, GameState},
+    states::{AssetLoadingExt, GameState, PauseState},
 };
 
 #[derive(Debug, Default)]
@@ -28,7 +28,7 @@ impl Plugin for ShotgunPlugin {
                     animate_shotgun.after(update_shotgun),
                     cast_to_hit,
                 )
-                    .run_if(in_state(GameState::InGame)),
+                    .run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
             );
     }
 }

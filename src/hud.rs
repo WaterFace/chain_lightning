@@ -8,7 +8,7 @@ use crate::{
     health::Health,
     player::Player,
     score::Score,
-    states::{AssetLoadingExt, GameState},
+    states::{AssetLoadingExt, GameState, PauseState},
 };
 
 #[derive(Debug, Default)]
@@ -18,7 +18,11 @@ impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
         app.load_asset_on_startup::<HudAssets>()
             .add_systems(OnEnter(GameState::InGame), setup_hud)
-            .add_systems(Update, (update_health_display, update_score_display));
+            .add_systems(
+                Update,
+                (update_health_display, update_score_display)
+                    .run_if(in_state(PauseState::Unpaused)),
+            );
     }
 }
 

@@ -9,7 +9,7 @@ use crate::{
     fire_skull::FireSkull,
     player::Player,
     sprite::{AnimatedSprite3d, FaceCamera},
-    states::{AssetLoadingExt, GameState},
+    states::{AssetLoadingExt, GameState, PauseState},
 };
 
 #[derive(Debug, Default)]
@@ -24,7 +24,8 @@ impl Plugin for SpawnerPlugin {
             .init_resource::<SkullsKilled>()
             .add_systems(
                 Update,
-                (spawn_spawners, run_spawners, create_spawners).run_if(in_state(GameState::InGame)),
+                (spawn_spawners, run_spawners, create_spawners)
+                    .run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
             );
     }
 }

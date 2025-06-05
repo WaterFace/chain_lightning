@@ -3,9 +3,25 @@ use bevy_rapier3d::prelude::*;
 
 use crate::{
     input::{InputAction, InputSettings, InputState},
-    states::GameState,
+    states::{GameState, PauseState},
 };
 use leafwing_input_manager::prelude::ActionState;
+
+#[derive(Debug, Default)]
+pub struct CharacterControllerPlugin;
+
+impl Plugin for CharacterControllerPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (handle_input, set_velocity)
+                .chain()
+                .in_set(PhysicsSet::SyncBackend)
+                .run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
+        )
+        .insert_resource(AccumulatedInput::default());
+    }
+}
 
 #[derive(Debug, Component)]
 #[require(
@@ -133,21 +149,5 @@ fn set_velocity(
         read_heading.heading = physics_state.heading;
 
         accumulated.clear();
-    }
-}
-
-#[derive(Debug, Default)]
-pub struct CharacterControllerPlugin;
-
-impl Plugin for CharacterControllerPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (handle_input, set_velocity)
-                .chain()
-                .in_set(PhysicsSet::SyncBackend)
-                .run_if(in_state(GameState::InGame)),
-        )
-        .insert_resource(AccumulatedInput::default());
     }
 }

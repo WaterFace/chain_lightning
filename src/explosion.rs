@@ -7,7 +7,7 @@ use crate::{
     health::{DamageEvent, Health},
     physics::{ENEMY_GROUP, EXPLOSION_GROUP, PLAYER_GROUP},
     sprite::{AnimatedSprite3d, FaceCamera},
-    states::{AssetLoadingExt, GameState},
+    states::{AssetLoadingExt, GameState, PauseState},
 };
 
 #[derive(Debug, Default)]
@@ -19,7 +19,8 @@ impl Plugin for ExplosionPlugin {
             .load_asset_on_startup::<ExplosionAssets>()
             .add_systems(
                 Update,
-                (spawn_explosion_visual, explosion_collision).run_if(in_state(GameState::InGame)),
+                (spawn_explosion_visual, explosion_collision)
+                    .run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
             );
     }
 }

@@ -1,6 +1,26 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
+#[derive(Debug, Default)]
+pub struct StatesPlugin;
+
+impl Plugin for StatesPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_state::<AppState>()
+            .init_state::<GameState>()
+            .init_state::<PauseState>()
+            .add_systems(
+                OnTransition {
+                    exited: AppState::AssetLoading,
+                    entered: AppState::Ready,
+                },
+                |mut next_state: ResMut<NextState<GameState>>| {
+                    next_state.set(GameState::InGame);
+                },
+            );
+    }
+}
+
 #[derive(Debug, Default, States, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AppState {
     #[default]
@@ -15,23 +35,11 @@ pub enum GameState {
     InGame,
 }
 
-#[derive(Debug, Default)]
-pub struct StatesPlugin;
-
-impl Plugin for StatesPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_state::<AppState>()
-            .init_state::<GameState>()
-            .add_systems(
-                OnTransition {
-                    exited: AppState::AssetLoading,
-                    entered: AppState::Ready,
-                },
-                |mut next_state: ResMut<NextState<GameState>>| {
-                    next_state.set(GameState::InGame);
-                },
-            );
-    }
+#[derive(Debug, Default, States, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PauseState {
+    #[default]
+    Unpaused,
+    Paused,
 }
 
 pub trait AssetLoadingExt {

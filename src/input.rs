@@ -19,7 +19,10 @@ impl Plugin for InputPlugin {
                     state.locked_cursor = true;
                 },
             )
-            .add_systems(Update, handle_input_state);
+            .add_systems(
+                Update,
+                handle_input_state.run_if(in_state(GameState::InGame)),
+            );
     }
 }
 

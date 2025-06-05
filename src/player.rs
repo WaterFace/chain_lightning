@@ -9,15 +9,17 @@ use crate::{
     health::Health,
     physics::{ENEMY_GROUP, EXPLOSION_GROUP, PLAYER_GROUP, WALL_GROUP},
     shotgun::Shotgun,
-    states::GameState,
+    states::{GameState, PauseState},
 };
 
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PlayerHurtEvent>()
-            .add_systems(Update, update_player.run_if(in_state(GameState::InGame)));
+        app.add_event::<PlayerHurtEvent>().add_systems(
+            Update,
+            update_player.run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
+        );
     }
 }
 

@@ -10,8 +10,27 @@ use crate::{
     health::Health,
     physics::{ENEMY_GROUP, EXPLOSION_GROUP, PLAYER_GROUP, SHOTGUN_GROUP},
     sprite::{AnimatedSprite3d, FaceCamera},
-    states::{AssetLoadingExt, GameState},
+    states::{AssetLoadingExt, GameState, PauseState},
 };
+
+#[derive(Debug, Default)]
+pub struct FireSkullPlugin;
+
+impl Plugin for FireSkullPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<FireSkullEvent>()
+            .load_asset_on_startup::<FireSkullAssets>()
+            .add_systems(
+                Update,
+                (
+                    spawn_fire_skull_visuals,
+                    bobbing_animation,
+                    move_skulls.in_set(bevy_rapier3d::plugin::PhysicsSet::SyncBackend),
+                )
+                    .run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
+            );
+    }
+}
 
 #[derive(Debug, Default, Component)]
 #[require(
@@ -165,24 +184,5 @@ fn move_skulls(
         let dir = (player_pos - skull_transform.translation()).normalize_or_zero();
 
         state.desired_velocity = dir * controller.max_speed;
-    }
-}
-
-#[derive(Debug, Default)]
-pub struct FireSkullPlugin;
-
-impl Plugin for FireSkullPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_event::<FireSkullEvent>()
-            .load_asset_on_startup::<FireSkullAssets>()
-            .add_systems(
-                Update,
-                (
-                    spawn_fire_skull_visuals,
-                    bobbing_animation,
-                    move_skulls.in_set(bevy_rapier3d::plugin::PhysicsSet::SyncBackend),
-                )
-                    .run_if(in_state(GameState::InGame)),
-            );
     }
 }

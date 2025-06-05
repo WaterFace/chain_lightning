@@ -10,6 +10,7 @@ mod health;
 mod hud;
 mod input;
 mod level;
+mod pause_menu;
 mod physics;
 mod player;
 mod rand;
@@ -54,7 +55,7 @@ fn main() {
             score::ScorePlugin,
         ))
         // too many plugins, starting another tuple
-        .add_plugins((hud::HudPlugin,))
+        .add_plugins((hud::HudPlugin, pause_menu::PauseMenuPlugin))
         .add_systems(OnEnter(states::GameState::InGame), setup)
         .run();
 }
