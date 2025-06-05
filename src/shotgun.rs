@@ -73,7 +73,7 @@ impl Default for Shotgun {
             next_state: ShotgunState::Idle,
             shots: 2,
             firing_time: 0.05,
-            reloading_time: 0.75,
+            reloading_time: 1.0,
             falloff_start: 15.0,
             falloff_end: 30.0,
             damage: 100.0,
