@@ -51,15 +51,15 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    // const N: usize = 10;
-    // for i in 0..N {
-    //     let t = (i + 1) as f32 / (N + 1) as f32;
-    //     let p = Quat::from_axis_angle(Vec3::Y, t * 2.0 * std::f32::consts::PI)
-    //         * Vec3::new(0.0, 0.0, -3.0);
-    //     commands.spawn((
-    //         fire_skull::FireSkull::default(),
-    //         Transform::from_translation(p + Vec3::new(0.0, 0.0, -13.0)),
-    //     ));
-    // }
+    const N: usize = 10;
+    for i in 0..N {
+        let t = (i + 1) as f32 / (N + 1) as f32;
+        let p = Quat::from_axis_angle(Vec3::Y, t * 2.0 * std::f32::consts::PI)
+            * Vec3::new(0.0, 0.0, -3.0);
+        commands.spawn((
+            fire_skull::FireSkull::default(),
+            Transform::from_translation(p + Vec3::new(0.0, 0.0, -13.0)),
+        ));
+    }
     commands.spawn(player::Player::default());
 }
