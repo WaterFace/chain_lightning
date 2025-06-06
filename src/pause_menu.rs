@@ -23,10 +23,14 @@ impl Plugin for PauseMenuPlugin {
         .init_resource::<Settings>()
         .add_systems(
             EguiContextPass,
-            pause_menu.run_if(in_state(PauseState::Paused)),
+            pause_menu.run_if(in_state(GameState::InGame).and(in_state(PauseState::Paused))),
         )
-        .add_systems(Update, pause_unpause.run_if(in_state(GameState::InGame)))
+        .add_systems(Update, pause_unpause)
         .add_systems(Update, update_individual_settings)
+        .add_systems(
+            OnEnter(GameState::InGame),
+            |mut next_state: ResMut<NextState<PauseState>>| next_state.set(PauseState::Unpaused),
+        )
         .add_systems(OnEnter(PauseState::Paused), on_pause)
         .add_systems(OnEnter(PauseState::Unpaused), on_unpause);
     }
