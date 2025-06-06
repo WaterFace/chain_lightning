@@ -47,7 +47,7 @@ impl Default for AudioSettings {
     fn default() -> Self {
         AudioSettings {
             sound_effect_volume: 0.5,
-            music_volume: 0.5,
+            music_volume: 0.25,
         }
     }
 }
