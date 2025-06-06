@@ -17,7 +17,13 @@ impl Plugin for AudioPlugin {
             .add_systems(Startup, setup_pools)
             // this should run regardless of the game's state
             .add_systems(Update, update_audio_settings)
-            .add_systems(OnEnter(GameState::InGame), play_music)
+            .add_systems(
+                OnTransition {
+                    entered: GameState::MainMenu,
+                    exited: GameState::Startup,
+                },
+                play_music,
+            )
             .add_systems(
                 Update,
                 (

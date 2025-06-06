@@ -18,7 +18,7 @@ pub struct ShotgunPlugin;
 
 impl Plugin for ShotgunPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ShotgunEvent>()
+        app.add_state_scoped_event::<ShotgunEvent>(GameState::InGame)
             .load_asset_on_startup::<ShotgunAssets>()
             .add_systems(OnEnter(GameState::InGame), setup_view_model)
             .add_systems(
@@ -254,7 +254,7 @@ fn setup_view_model(
     shotgun_assets: Res<ShotgunAssets>,
     mut sprite3d_params: Sprite3dParams,
 ) {
-    commands.spawn(ViewmodelCamera);
+    commands.spawn((ViewmodelCamera, StateScoped(GameState::InGame)));
 
     let atlas = TextureAtlas {
         layout: shotgun_assets.shotgun_atlas_layout.clone(),
@@ -273,5 +273,6 @@ fn setup_view_model(
         ShotgunViewModel,
         RenderLayers::layer(1),
         Transform::from_xyz(0.0, 0.0, -1.0),
+        StateScoped(GameState::InGame),
     ));
 }

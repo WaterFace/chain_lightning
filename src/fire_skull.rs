@@ -18,7 +18,7 @@ pub struct FireSkullPlugin;
 
 impl Plugin for FireSkullPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<FireSkullEvent>()
+        app.add_state_scoped_event::<FireSkullEvent>(GameState::InGame)
             .load_asset_on_startup::<FireSkullAssets>()
             .add_systems(
                 Update,

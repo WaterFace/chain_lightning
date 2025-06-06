@@ -15,7 +15,7 @@ pub struct ExplosionPlugin;
 
 impl Plugin for ExplosionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ExplosionEvent>()
+        app.add_state_scoped_event::<ExplosionEvent>(GameState::InGame)
             .load_asset_on_startup::<ExplosionAssets>()
             .add_systems(
                 Update,

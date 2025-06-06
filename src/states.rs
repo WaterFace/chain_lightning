@@ -15,27 +15,32 @@ impl Plugin for StatesPlugin {
                     entered: AppState::Ready,
                 },
                 |mut next_state: ResMut<NextState<GameState>>| {
-                    next_state.set(GameState::InGame);
+                    next_state.set(GameState::MainMenu);
                 },
             );
     }
 }
 
 #[derive(Debug, Default, States, Clone, Copy, PartialEq, Eq, Hash)]
+#[states(scoped_entities)]
 pub enum AppState {
     #[default]
+    PreLoading,
     AssetLoading,
     Ready,
 }
 
 #[derive(Debug, Default, States, Clone, Copy, PartialEq, Eq, Hash)]
+#[states(scoped_entities)]
 pub enum GameState {
     #[default]
     Startup,
+    MainMenu,
     InGame,
 }
 
 #[derive(Debug, Default, States, Clone, Copy, PartialEq, Eq, Hash)]
+#[states(scoped_entities)]
 pub enum PauseState {
     #[default]
     Unpaused,

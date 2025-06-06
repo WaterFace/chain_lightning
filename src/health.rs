@@ -14,10 +14,12 @@ pub struct HealthPlugin;
 
 impl Plugin for HealthPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<DamageEvent>().add_systems(
-            Update,
-            handle_damage.run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
-        );
+        app.add_state_scoped_event::<DamageEvent>(GameState::InGame)
+            .add_systems(
+                Update,
+                handle_damage
+                    .run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
+            );
     }
 }
 

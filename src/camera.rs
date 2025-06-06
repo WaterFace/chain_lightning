@@ -59,6 +59,7 @@ fn attach_camera_to_player(
                 brightness: 1000.0,
                 ..Default::default()
             },
+            StateScoped(GameState::InGame),
         ));
     }
 }

@@ -16,10 +16,13 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PlayerHurtEvent>().add_systems(
-            Update,
-            update_player.run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
-        );
+        app.add_state_scoped_event::<PlayerHurtEvent>(GameState::InGame)
+            .add_systems(
+                Update,
+                update_player
+                    .run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
+            )
+            .add_systems(OnEnter(GameState::InGame), spawn_player);
     }
 }
 
@@ -61,6 +64,10 @@ fn update_player(time: Res<Time>, mut query: Query<&mut Player>) {
     for mut player in query.iter_mut() {
         player.invulnerability_timer.tick(time.delta());
     }
+}
+
+fn spawn_player(mut commands: Commands) {
+    commands.spawn((Player::default(), StateScoped(GameState::InGame)));
 }
 
 #[derive(Debug, Event)]

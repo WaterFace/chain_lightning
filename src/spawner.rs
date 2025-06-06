@@ -18,10 +18,10 @@ pub struct SpawnerPlugin;
 impl Plugin for SpawnerPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<SpawnParameters>()
-            .add_event::<CreateSpawnerEvent>()
+            .add_state_scoped_event::<CreateSpawnerEvent>(GameState::InGame)
             .load_asset_on_startup::<SpawnerAssets>()
-            // TODO: reset this on game restart
             .init_resource::<SkullsKilled>()
+            .add_systems(OnEnter(GameState::InGame), reset_skulls_killed)
             .add_systems(
                 Update,
                 (spawn_spawners, run_spawners, create_spawners)
@@ -33,6 +33,10 @@ impl Plugin for SpawnerPlugin {
 #[derive(Resource, Default, Debug)]
 pub struct SkullsKilled {
     pub count: usize,
+}
+
+fn reset_skulls_killed(mut commands: Commands) {
+    commands.insert_resource(SkullsKilled::default());
 }
 
 #[derive(Debug, Resource)]

@@ -1,4 +1,7 @@
-use bevy::{prelude::*, window::CursorGrabMode};
+use bevy::{
+    prelude::*,
+    window::{CursorGrabMode, PrimaryWindow},
+};
 use bevy_fix_cursor_unlock_web::prelude::*;
 use leafwing_input_manager::prelude::*;
 
@@ -17,10 +20,8 @@ impl Plugin for InputPlugin {
             .init_resource::<InputSettings>()
             .init_resource::<InputState>()
             .insert_resource(default_input_map())
-            .add_systems(
-                Update,
-                handle_input_state.run_if(in_state(GameState::InGame)),
-            );
+            .add_systems(Update, handle_input_state)
+            .add_systems(OnEnter(PauseState::Paused), release_mouse);
     }
 }
 
@@ -85,12 +86,15 @@ fn default_input_map() -> InputMap<InputAction> {
 }
 
 fn handle_input_state(
-    mut window: Single<&mut Window, With<bevy::window::PrimaryWindow>>,
+    mut window: Single<&mut Window, With<PrimaryWindow>>,
     mut input_state: ResMut<InputState>,
     pause_state: Res<State<PauseState>>,
+    game_state: Res<State<GameState>>,
     input: Res<ActionState<InputAction>>,
 ) {
-    if input.just_pressed(&InputAction::Focus) && matches!(pause_state.get(), PauseState::Unpaused)
+    if matches!(game_state.get(), GameState::InGame)
+        && input.just_pressed(&InputAction::Focus)
+        && matches!(pause_state.get(), PauseState::Unpaused)
     {
         window.cursor_options.visible = false;
         window.cursor_options.grab_mode = CursorGrabMode::Locked;
@@ -105,4 +109,10 @@ fn handle_input_state(
             window.cursor_options.visible = true;
         }
     }
+}
+
+fn release_mouse(mut window: Single<&mut Window, With<PrimaryWindow>>) {
+    window.cursor_options.visible = true;
+    window.cursor_options.grab_mode = CursorGrabMode::None;
+    info!("released mouse");
 }

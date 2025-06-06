@@ -10,6 +10,7 @@ mod health;
 mod hud;
 mod input;
 mod level;
+mod menu;
 mod pause_menu;
 mod physics;
 mod player;
@@ -72,11 +73,10 @@ fn main() {
             score::ScorePlugin,
         ))
         // too many plugins, starting another tuple
-        .add_plugins((hud::HudPlugin, pause_menu::PauseMenuPlugin))
-        .add_systems(OnEnter(states::GameState::InGame), setup)
+        .add_plugins((
+            hud::HudPlugin,
+            pause_menu::PauseMenuPlugin,
+            menu::MenuPlugin,
+        ))
         .run();
-}
-
-fn setup(mut commands: Commands) {
-    commands.spawn(player::Player::default());
 }

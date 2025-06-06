@@ -77,6 +77,7 @@ fn spawn_ground_and_walls(
         commands.spawn((
             tile,
             Transform::from_translation(offset).looking_to(Dir3::Y, Dir3::Z),
+            StateScoped(GameState::InGame),
         ));
     }
 
