@@ -12,6 +12,7 @@ pub struct CameraPlugin;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.load_asset_on_startup::<SkyboxAssets>()
+            .init_resource::<CameraSettings>()
             .add_systems(
                 OnTransition {
                     exited: AppState::AssetLoading,
@@ -23,7 +24,19 @@ impl Plugin for CameraPlugin {
                 Update,
                 (attach_camera_to_player, update_heading)
                     .run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
-            );
+            )
+            .add_systems(Update, update_camera_settings);
+    }
+}
+
+#[derive(Debug, Resource)]
+pub struct CameraSettings {
+    pub fov: f32,
+}
+
+impl Default for CameraSettings {
+    fn default() -> Self {
+        CameraSettings { fov: 45.0 }
     }
 }
 
@@ -71,6 +84,24 @@ fn fix_skybox_image(assets: Res<SkyboxAssets>, mut images: ResMut<Assets<Image>>
         dimension: Some(bevy::render::render_resource::TextureViewDimension::Cube),
         ..Default::default()
     });
+}
+
+fn update_camera_settings(
+    mut camera_query: Query<&mut Projection, With<MainCamera>>,
+    settings: Res<CameraSettings>,
+) {
+    if !settings.is_changed() {
+        return;
+    }
+
+    for mut proj in camera_query.iter_mut() {
+        if let Projection::Perspective(old_projection) = proj.as_ref() {
+            *proj = Projection::Perspective(PerspectiveProjection {
+                fov: settings.fov.to_radians(),
+                ..old_projection.clone()
+            })
+        }
+    }
 }
 
 #[derive(AssetCollection, Resource, Debug)]
