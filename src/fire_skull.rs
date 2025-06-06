@@ -7,8 +7,9 @@ use bevy_sprite3d::prelude::*;
 
 use crate::{
     character_controller::{CharacterController, CharacterControllerState},
-    health::Health,
+    health::{DamageEvent, Health},
     physics::{ENEMY_GROUP, EXPLOSION_GROUP, PLAYER_GROUP, SHOTGUN_GROUP},
+    player::Player,
     sprite::{AnimatedSprite3d, FaceCamera},
     states::{AssetLoadingExt, GameState, PauseState},
 };
@@ -25,6 +26,7 @@ impl Plugin for FireSkullPlugin {
                 (
                     spawn_fire_skull_visuals,
                     bobbing_animation,
+                    fire_skull_collision,
                     move_skulls.in_set(bevy_rapier3d::plugin::PhysicsSet::SyncBackend),
                 )
                     .run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
@@ -184,5 +186,30 @@ fn move_skulls(
         let dir = (player_pos - skull_transform.translation()).normalize_or_zero();
 
         state.desired_velocity = dir * controller.max_speed;
+    }
+}
+
+fn fire_skull_collision(
+    mut writer: EventWriter<DamageEvent>,
+    mut collisions: EventReader<CollisionEvent>,
+    skull_query: Query<&FireSkull>,
+    player_query: Query<&Player>,
+) {
+    for ev in collisions.read() {
+        if let &CollisionEvent::Started(e1, e2, _flags) = ev {
+            if let (Ok(_player), Ok(_skull)) = (player_query.get(e1), skull_query.get(e2)) {
+                writer.write(DamageEvent {
+                    entity: e2,
+                    damage: f32::INFINITY,
+                    chain: 0,
+                });
+            } else if let (Ok(_player), Ok(_skull)) = (player_query.get(e2), skull_query.get(e1)) {
+                writer.write(DamageEvent {
+                    entity: e1,
+                    damage: f32::INFINITY,
+                    chain: 0,
+                });
+            }
+        }
     }
 }

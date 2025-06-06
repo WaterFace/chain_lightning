@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::CollisionGroups;
+use bevy_rapier3d::prelude::{ActiveEvents, CollisionGroups};
 use bevy_seedling::prelude::*;
 
 use crate::{
@@ -37,6 +37,7 @@ impl Plugin for PlayerPlugin {
             acceleration: 10.0,
         },
     CollisionGroups::new(PLAYER_GROUP, ENEMY_GROUP | EXPLOSION_GROUP | WALL_GROUP),
+    ActiveEvents::COLLISION_EVENTS,
     Shotgun,
 )]
 pub struct Player {
