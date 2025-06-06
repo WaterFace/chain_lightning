@@ -43,7 +43,7 @@ struct HealthDisplay;
 struct ScoreDisplay;
 
 fn setup_hud(mut commands: Commands, assets: Res<HudAssets>) {
-    commands.spawn(UiCamera);
+    commands.spawn((UiCamera, StateScoped(GameState::InGame)));
 
     const FONT_SIZE: f32 = 40.0;
     commands.spawn((
