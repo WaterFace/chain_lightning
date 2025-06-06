@@ -130,6 +130,7 @@ fn pause_menu(
     main_window: Single<&Window, With<PrimaryWindow>>,
     mut settings: ResMut<Settings>,
     mut exit_confirm: Local<bool>,
+    mut next_pause_state: ResMut<NextState<PauseState>>,
 ) {
     egui::Window::new("Paused")
         .auto_sized()
@@ -185,6 +186,7 @@ fn pause_menu(
                 if ui.button("Resume").clicked() {
                     *exit_confirm = false;
                     info!("resume");
+                    next_pause_state.set(PauseState::Unpaused);
                 }
             })
         });

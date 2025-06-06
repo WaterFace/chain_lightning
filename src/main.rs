@@ -33,6 +33,23 @@ fn main() {
                 })
                 .set(ImagePlugin {
                     default_sampler: bevy::image::ImageSamplerDescriptor::nearest(),
+                })
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        title: "Exploding Skulls".into(),
+                        name: Some("bevy.app".into()),
+                        resolution: (1280., 720.).into(),
+                        // Tells Wasm to resize the window according to the available canvas
+                        fit_canvas_to_parent: true,
+                        // Tells Wasm not to override default event handling, like F5, Ctrl+R etc.
+                        prevent_default_event_handling: false,
+                        enabled_buttons: bevy::window::EnabledButtons {
+                            maximize: false,
+                            ..Default::default()
+                        },
+                        ..default()
+                    }),
+                    ..default()
                 }),
         )
         // Add the states plugin first so asset loading is ready for any other plugin
