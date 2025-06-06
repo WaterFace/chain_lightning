@@ -131,6 +131,7 @@ fn pause_menu(
     mut settings: ResMut<Settings>,
     mut exit_confirm: Local<bool>,
     mut next_pause_state: ResMut<NextState<PauseState>>,
+    mut next_game_state: ResMut<NextState<GameState>>,
 ) {
     egui::Window::new("Paused")
         .auto_sized()
@@ -178,6 +179,8 @@ fn pause_menu(
                     {
                         *exit_confirm = false;
                         info!("exit");
+                        next_game_state.set(GameState::MainMenu);
+                        next_pause_state.set(PauseState::Unpaused);
                     }
                 } else if ui.button("Exit To Menu").clicked() {
                     *exit_confirm = true;
