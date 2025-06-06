@@ -23,7 +23,12 @@ impl Plugin for SpawnerPlugin {
             .init_resource::<SkullsKilled>()
             .add_systems(
                 OnEnter(GameState::InGame),
-                (reset_skulls_killed, create_first_spawner),
+                (
+                    reset_skulls_killed,
+                    reset_spawn_parameters,
+                    create_first_spawner,
+                )
+                    .chain(),
             )
             .add_systems(
                 Update,
@@ -68,6 +73,10 @@ impl SpawnParameters {
         self.skulls_to_spawn = 5.0 + 0.4 * f32::sqrt(30.0 * difficulty);
         self.delay_before_next_spawner = 10.0 - (5.0 * difficulty / (difficulty + 100.0));
     }
+}
+
+fn reset_spawn_parameters(mut commands: Commands) {
+    commands.insert_resource(SpawnParameters::default());
 }
 
 #[derive(Debug, Component)]
