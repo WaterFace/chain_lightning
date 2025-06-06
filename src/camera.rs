@@ -50,10 +50,15 @@ fn attach_camera_to_player(
     mut commands: Commands,
     query: Query<Entity, Added<crate::player::Player>>,
     assets: Res<SkyboxAssets>,
+    settings: Res<CameraSettings>,
 ) {
     for entity in query.iter() {
         commands.entity(entity).with_child((
             MainCamera::default(),
+            Projection::Perspective(PerspectiveProjection {
+                fov: settings.fov,
+                ..Default::default()
+            }),
             Skybox {
                 image: assets.skybox.clone(),
                 brightness: 1000.0,
