@@ -19,7 +19,7 @@ impl Plugin for PlayerPlugin {
         app.add_state_scoped_event::<PlayerHurtEvent>(GameState::InGame)
             .add_systems(
                 Update,
-                update_player
+                (update_player, handle_player_death)
                     .run_if(in_state(GameState::InGame).and(in_state(PauseState::Unpaused))),
             )
             .add_systems(OnEnter(GameState::InGame), spawn_player);
@@ -41,6 +41,7 @@ impl Plugin for PlayerPlugin {
 )]
 pub struct Player {
     pub invulnerability_timer: Timer,
+    pub death_timer: Timer,
 }
 
 impl Default for Player {
@@ -50,6 +51,7 @@ impl Default for Player {
         timer.tick(Duration::from_secs_f32(1000.0));
         Player {
             invulnerability_timer: timer,
+            death_timer: Timer::from_seconds(2.0, TimerMode::Once),
         }
     }
 }
@@ -68,6 +70,22 @@ fn update_player(time: Res<Time>, mut query: Query<&mut Player>) {
 
 fn spawn_player(mut commands: Commands) {
     commands.spawn((Player::default(), StateScoped(GameState::InGame)));
+}
+
+fn handle_player_death(
+    time: Res<Time>,
+    mut next_state: ResMut<NextState<GameState>>,
+    player_query: Single<(&Health, &mut Player)>,
+) {
+    let (health, mut player) = player_query.into_inner();
+    if !health.dead {
+        return;
+    }
+
+    player.death_timer.tick(time.delta());
+    if player.death_timer.just_finished() {
+        next_state.set(GameState::End);
+    }
 }
 
 #[derive(Debug, Event)]

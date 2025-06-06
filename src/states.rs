@@ -37,6 +37,7 @@ pub enum GameState {
     Startup,
     MainMenu,
     InGame,
+    End,
 }
 
 #[derive(Debug, Default, States, Clone, Copy, PartialEq, Eq, Hash)]

@@ -8,6 +8,9 @@ pub struct ScorePlugin;
 impl Plugin for ScorePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Score>()
+            .add_systems(OnEnter(GameState::InGame), |mut commands: Commands| {
+                commands.insert_resource(Score::default());
+            })
             .add_state_scoped_event::<ScoreEvent>(GameState::InGame)
             .add_systems(Update, handle_score_event);
     }

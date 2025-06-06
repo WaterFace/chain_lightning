@@ -139,7 +139,11 @@ fn run_spawners(
                 }
             }
 
-            commands.spawn((FireSkull::default(), Transform::from_translation(pos)));
+            commands.spawn((
+                FireSkull::default(),
+                Transform::from_translation(pos),
+                StateScoped(GameState::InGame),
+            ));
         }
     }
 }
@@ -191,6 +195,7 @@ fn spawn_spawners(
             animation,
             FaceCamera::default(),
             Transform::from_translation(*pos).with_scale(Vec3::splat(8.0)),
+            StateScoped(GameState::InGame),
         ));
     }
 }

@@ -12,7 +12,7 @@ pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
-        app.load_asset_on_startup::<MainMenuAssets>()
+        app.load_asset_on_startup::<MenuAssets>()
             // load this first so we can use it on the loading screen:
             .add_loading_state(
                 LoadingState::new(AppState::PreLoading)
@@ -21,14 +21,18 @@ impl Plugin for MenuPlugin {
             )
             .add_systems(OnEnter(AppState::AssetLoading), setup_loading_screen)
             .add_systems(OnEnter(GameState::MainMenu), setup_main_menu)
-            .add_systems(Update, main_menu.run_if(in_state(GameState::MainMenu)));
+            .add_systems(Update, main_menu.run_if(in_state(GameState::MainMenu)))
+            .add_systems(OnEnter(GameState::End), setup_end_screen)
+            .add_systems(Update, end_screen.run_if(in_state(GameState::End)));
     }
 }
 
 #[derive(Resource, AssetCollection, Debug)]
-struct MainMenuAssets {
+struct MenuAssets {
     #[asset(path = "textures/title.png")]
     main_menu: Handle<Image>,
+    #[asset(path = "textures/end.png")]
+    end: Handle<Image>,
 }
 
 #[derive(Resource, AssetCollection, Debug)]
@@ -54,7 +58,7 @@ fn setup_loading_screen(
 
 fn setup_main_menu(
     mut commands: Commands,
-    assets: Res<MainMenuAssets>,
+    assets: Res<MenuAssets>,
     window: Single<&Window, With<PrimaryWindow>>,
 ) {
     commands.spawn((Camera2d, StateScoped(GameState::MainMenu)));
@@ -68,6 +72,27 @@ fn setup_main_menu(
 }
 
 fn main_menu(input: Res<ActionState<InputAction>>, mut next_state: ResMut<NextState<GameState>>) {
+    if input.just_pressed(&InputAction::Fire) {
+        next_state.set(GameState::InGame);
+    }
+}
+
+fn setup_end_screen(
+    mut commands: Commands,
+    assets: Res<MenuAssets>,
+    window: Single<&Window, With<PrimaryWindow>>,
+) {
+    commands.spawn((Camera2d, StateScoped(GameState::End)));
+    commands.spawn((
+        Sprite {
+            custom_size: Some(window.size()),
+            ..Sprite::from_image(assets.end.clone())
+        },
+        StateScoped(GameState::End),
+    ));
+}
+
+fn end_screen(input: Res<ActionState<InputAction>>, mut next_state: ResMut<NextState<GameState>>) {
     if input.just_pressed(&InputAction::Fire) {
         next_state.set(GameState::InGame);
     }
