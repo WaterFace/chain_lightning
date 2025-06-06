@@ -21,7 +21,10 @@ impl Plugin for SpawnerPlugin {
             .add_state_scoped_event::<CreateSpawnerEvent>(GameState::InGame)
             .load_asset_on_startup::<SpawnerAssets>()
             .init_resource::<SkullsKilled>()
-            .add_systems(OnEnter(GameState::InGame), reset_skulls_killed)
+            .add_systems(
+                OnEnter(GameState::InGame),
+                (reset_skulls_killed, create_first_spawner),
+            )
             .add_systems(
                 Update,
                 (spawn_spawners, run_spawners, create_spawners)
@@ -116,6 +119,16 @@ fn create_spawners(
 
     writer.write(CreateSpawnerEvent {
         pos: spawn_pos,
+        skulls_left: spawn_parameters.skulls_to_spawn as usize,
+    });
+}
+
+fn create_first_spawner(
+    mut writer: EventWriter<CreateSpawnerEvent>,
+    spawn_parameters: Res<SpawnParameters>,
+) {
+    writer.write(CreateSpawnerEvent {
+        pos: Vec3::new(0.0, 0.0, -20.0),
         skulls_left: spawn_parameters.skulls_to_spawn as usize,
     });
 }
