@@ -3,6 +3,7 @@ use bevy_rapier3d::prelude::*;
 
 use crate::{
     input::{InputAction, InputSettings, InputState},
+    player::Player,
     states::{GameState, PauseState},
 };
 use leafwing_input_manager::prelude::ActionState;
@@ -80,10 +81,7 @@ fn handle_input(
     input: Res<ActionState<InputAction>>,
     input_settings: Res<InputSettings>,
     input_state: Res<InputState>,
-    mut query: Query<
-        (&CharacterController, &mut CharacterControllerState),
-        With<crate::player::Player>,
-    >,
+    mut query: Query<(&CharacterController, &mut CharacterControllerState, &Player)>,
 ) {
     // movement is oriented as if the player is facing in the negative Z direction
     if input.pressed(&InputAction::MoveForward) {
@@ -112,7 +110,12 @@ fn handle_input(
         }
     }
 
-    for (player, mut physics_state) in query.iter_mut() {
+    for (controller, mut physics_state, player) in query.iter_mut() {
+        if player.dead {
+            physics_state.desired_velocity = Vec3::ZERO;
+            continue;
+        }
+
         // Allow less-than-full-speed movement, but still normalize if necessary so things don't move
         // faster diagonally
         let desired_movement = if accumulated.movement.length_squared() > 1.0 {
@@ -122,7 +125,7 @@ fn handle_input(
         };
 
         physics_state.desired_velocity = Quat::from_axis_angle(Vec3::Y, physics_state.heading)
-            * (desired_movement * player.max_speed);
+            * (desired_movement * controller.max_speed);
 
         physics_state.desired_turn = accumulated.turn * input_settings.turn_rate;
     }

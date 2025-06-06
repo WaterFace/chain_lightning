@@ -5,10 +5,11 @@ use bevy_rapier3d::prelude::{ActiveEvents, CollisionGroups};
 use bevy_seedling::prelude::*;
 
 use crate::{
+    camera::MainCamera,
     character_controller::CharacterController,
     health::Health,
     physics::{ENEMY_GROUP, EXPLOSION_GROUP, PLAYER_GROUP, WALL_GROUP},
-    shotgun::Shotgun,
+    shotgun::{Shotgun, ShotgunViewModel},
     states::{GameState, PauseState},
 };
 
@@ -17,6 +18,8 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_state_scoped_event::<PlayerHurtEvent>(GameState::InGame)
+            .add_state_scoped_event::<PlayerDeathEvent>(GameState::InGame)
+            .add_systems(Update, on_player_death)
             .add_systems(
                 Update,
                 (update_player, handle_player_death)
@@ -43,6 +46,7 @@ impl Plugin for PlayerPlugin {
 pub struct Player {
     pub invulnerability_timer: Timer,
     pub death_timer: Timer,
+    pub dead: bool,
 }
 
 impl Default for Player {
@@ -53,6 +57,7 @@ impl Default for Player {
         Player {
             invulnerability_timer: timer,
             death_timer: Timer::from_seconds(2.0, TimerMode::Once),
+            dead: false,
         }
     }
 }
@@ -73,20 +78,48 @@ fn spawn_player(mut commands: Commands) {
     commands.spawn((Player::default(), StateScoped(GameState::InGame)));
 }
 
+#[derive(Debug, Default, Clone, Copy, Event)]
+pub struct PlayerDeathEvent;
+
 fn handle_player_death(
     time: Res<Time>,
     mut next_state: ResMut<NextState<GameState>>,
     player_query: Single<(&Health, &mut Player)>,
+    mut writer: EventWriter<PlayerDeathEvent>,
 ) {
     let (health, mut player) = player_query.into_inner();
     if !health.dead {
         return;
     }
 
+    if !player.dead {
+        writer.write(PlayerDeathEvent);
+    }
+
+    player.dead = true;
+
     player.death_timer.tick(time.delta());
     if player.death_timer.just_finished() {
         next_state.set(GameState::End);
     }
+}
+
+fn on_player_death(
+    reader: EventReader<PlayerDeathEvent>,
+    mut viewmodel_query: Query<&mut Visibility, With<ShotgunViewModel>>,
+    mut camera: Single<&mut Transform, With<MainCamera>>,
+) {
+    if reader.is_empty() {
+        return;
+    }
+
+    // disable the view model
+    for mut visibility in viewmodel_query.iter_mut() {
+        *visibility = Visibility::Hidden;
+    }
+
+    // drop the view to the ground
+    camera.translation.y -= 0.25;
 }
 
 #[derive(Debug, Event)]

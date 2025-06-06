@@ -96,10 +96,13 @@ pub enum ShotgunState {
 fn update_shotgun(
     time: Res<Time>,
     input: Res<ActionState<InputAction>>,
-    mut query: Query<&mut Shotgun>,
+    mut query: Query<(&mut Shotgun, &Player)>,
     mut writer: EventWriter<ShotgunEvent>,
 ) {
-    for mut shotgun in query.iter_mut() {
+    for (mut shotgun, player) in query.iter_mut() {
+        if player.dead {
+            continue;
+        }
         match shotgun.state {
             ShotgunState::Idle => {
                 if !shotgun.should_fire(input.pressed(&InputAction::Fire)) {
@@ -247,7 +250,7 @@ impl ShotgunAssets {
 struct ViewmodelCamera;
 
 #[derive(Debug, Default, Component)]
-struct ShotgunViewModel;
+pub struct ShotgunViewModel;
 
 fn setup_view_model(
     mut commands: Commands,
