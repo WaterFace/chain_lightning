@@ -17,6 +17,7 @@ impl Plugin for AudioPlugin {
             .add_systems(Startup, setup_pools)
             // this should run regardless of the game's state
             .add_systems(Update, update_audio_settings)
+            .add_systems(OnEnter(GameState::InGame), play_music)
             .add_systems(
                 Update,
                 (
@@ -33,12 +34,14 @@ impl Plugin for AudioPlugin {
 #[derive(Debug, Resource)]
 pub struct AudioSettings {
     pub sound_effect_volume: f32,
+    pub music_volume: f32,
 }
 
 impl Default for AudioSettings {
     fn default() -> Self {
         AudioSettings {
             sound_effect_volume: 0.5,
+            music_volume: 0.5,
         }
     }
 }
@@ -47,15 +50,21 @@ fn update_audio_settings(
     settings: Res<AudioSettings>,
     sound_effect_query: Query<
         &SampleEffects,
-        Or<(With<SoundEffectPool>, With<SpatialSoundEffectPool>)>,
+        Or<(
+            With<SoundEffectPool>,
+            With<SpatialSoundEffectPool>,
+            With<MusicPool>,
+        )>,
     >,
     sound_effect_pool_query: Query<
         &SampleEffects,
         Or<(
             With<SamplerPool<SoundEffectPool>>,
             With<SamplerPool<SpatialSoundEffectPool>>,
+            With<SamplerPool<MusicPool>>,
         )>,
     >,
+    music_query: Query<&SampleEffects, Or<(With<MusicPool>, With<SamplerPool<MusicPool>>)>>,
     mut volume_query: Query<&mut VolumeNode>,
 ) {
     if !settings.is_changed() {
@@ -89,6 +98,20 @@ fn update_audio_settings(
             }
         }
     }
+
+    for effects in music_query.iter() {
+        match volume_query.get_effect_mut(effects) {
+            Ok(mut volume) => {
+                *volume = VolumeNode {
+                    volume: Volume::Linear(settings.music_volume),
+                }
+            }
+            Err(e) => {
+                warn!("{}", e);
+                continue;
+            }
+        }
+    }
 }
 
 #[derive(PoolLabel, Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
@@ -96,6 +119,9 @@ struct SoundEffectPool;
 
 #[derive(PoolLabel, Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 struct SpatialSoundEffectPool;
+
+#[derive(PoolLabel, Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
+struct MusicPool;
 
 fn setup_pools(mut commands: Commands, settings: Res<AudioSettings>) {
     commands.spawn((
@@ -113,6 +139,13 @@ fn setup_pools(mut commands: Commands, settings: Res<AudioSettings>) {
             },
             SpatialBasicNode::default()
         ],
+    ));
+
+    commands.spawn((
+        SamplerPool(MusicPool),
+        sample_effects![VolumeNode {
+            volume: Volume::Linear(settings.music_volume)
+        }],
     ));
 }
 
@@ -135,6 +168,10 @@ struct SoundAssets {
     // player sounds
     #[asset(path = "sounds/oof.ogg")]
     oof: Handle<Sample>,
+
+    // music
+    #[asset(path = "music/BRUTAL TIME.ogg")]
+    music: Handle<Sample>,
 }
 
 fn play_shotgun_sounds(
@@ -196,4 +233,8 @@ fn play_player_sounds(
     for crate::player::PlayerHurtEvent { .. } in reader.read() {
         commands.spawn((SamplePlayer::new(assets.oof.clone()), SoundEffectPool));
     }
+}
+
+fn play_music(mut commands: Commands, assets: Res<SoundAssets>) {
+    commands.spawn((SamplePlayer::new(assets.music.clone()).looping(), MusicPool));
 }
