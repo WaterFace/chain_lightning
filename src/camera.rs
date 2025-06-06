@@ -56,7 +56,7 @@ fn attach_camera_to_player(
         commands.entity(entity).with_child((
             MainCamera::default(),
             Projection::Perspective(PerspectiveProjection {
-                fov: settings.fov,
+                fov: settings.fov.to_radians(),
                 ..Default::default()
             }),
             Skybox {
