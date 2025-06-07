@@ -20,9 +20,15 @@ impl Plugin for MenuPlugin {
             )
             .add_systems(OnEnter(AppState::AssetLoading), setup_loading_screen)
             .add_systems(OnEnter(GameState::MainMenu), setup_main_menu)
-            .add_systems(Update, main_menu.run_if(in_state(GameState::MainMenu)))
+            .add_systems(
+                Update,
+                (main_menu, scale_splash).run_if(in_state(GameState::MainMenu)),
+            )
             .add_systems(OnEnter(GameState::End), setup_end_screen)
-            .add_systems(Update, end_screen.run_if(in_state(GameState::End)));
+            .add_systems(
+                Update,
+                (end_screen, scale_splash).run_if(in_state(GameState::End)),
+            );
     }
 }
 
@@ -55,6 +61,9 @@ fn setup_loading_screen(
     ));
 }
 
+#[derive(Debug, Default, Component)]
+struct Splash;
+
 fn setup_main_menu(
     mut commands: Commands,
     assets: Res<MenuAssets>,
@@ -67,6 +76,7 @@ fn setup_main_menu(
             ..Sprite::from_image(assets.main_menu.clone())
         },
         StateScoped(GameState::MainMenu),
+        Splash,
     ));
 }
 
@@ -92,6 +102,7 @@ fn setup_end_screen(
             ..Sprite::from_image(assets.end.clone())
         },
         StateScoped(GameState::End),
+        Splash,
     ));
 }
 
@@ -102,5 +113,14 @@ fn end_screen(
     if input.just_pressed(&InputAction::FireSpace) {
         input.release(&InputAction::FireSpace);
         next_state.set(GameState::InGame);
+    }
+}
+
+fn scale_splash(
+    window: Single<&Window, With<PrimaryWindow>>,
+    mut query: Query<&mut Sprite, With<Splash>>,
+) {
+    for mut sprite in query.iter_mut() {
+        sprite.custom_size = Some(window.size());
     }
 }
