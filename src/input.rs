@@ -5,7 +5,7 @@ use bevy::{
 use bevy_fix_cursor_unlock_web::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::states::{GameState, PauseState};
+use crate::states::PauseState;
 
 #[derive(Debug, Default)]
 pub struct InputPlugin;
@@ -55,7 +55,8 @@ pub enum InputAction {
     TurnRight,
     #[actionlike(Axis)]
     TurnAxis,
-    Fire,
+    FireMouse,
+    FireSpace,
     Focus,
     Pause,
 }
@@ -68,7 +69,7 @@ fn default_input_map() -> InputMap<InputAction> {
         (InputAction::StrafeLeft, KeyCode::KeyA),
         (InputAction::StrafeRight, KeyCode::KeyD),
     ]);
-    map.insert_multiple([(InputAction::Fire, MouseButton::Left)]);
+    map.insert_multiple([(InputAction::FireMouse, MouseButton::Left)]);
     map.insert_axis(InputAction::TurnAxis, MouseMoveAxis::X);
 
     map.insert_multiple([
@@ -77,7 +78,7 @@ fn default_input_map() -> InputMap<InputAction> {
         (InputAction::TurnLeft, KeyCode::ArrowLeft),
         (InputAction::TurnRight, KeyCode::ArrowRight),
     ]);
-    map.insert_multiple([(InputAction::Fire, KeyCode::Space)]);
+    map.insert_multiple([(InputAction::FireSpace, KeyCode::Space)]);
 
     map.insert(InputAction::Pause, KeyCode::Escape);
     map.insert(InputAction::Focus, MouseButton::Left);
@@ -89,12 +90,10 @@ fn handle_input_state(
     mut window: Single<&mut Window, With<PrimaryWindow>>,
     mut input_state: ResMut<InputState>,
     pause_state: Res<State<PauseState>>,
-    game_state: Res<State<GameState>>,
+    // game_state: Res<State<GameState>>,
     input: Res<ActionState<InputAction>>,
 ) {
-    if matches!(game_state.get(), GameState::InGame)
-        && input.just_pressed(&InputAction::Focus)
-        && matches!(pause_state.get(), PauseState::Unpaused)
+    if input.just_pressed(&InputAction::Focus) && matches!(pause_state.get(), PauseState::Unpaused)
     {
         window.cursor_options.visible = false;
         window.cursor_options.grab_mode = CursorGrabMode::Locked;

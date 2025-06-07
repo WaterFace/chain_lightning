@@ -5,12 +5,13 @@ use bevy_sprite3d::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
+    assets::AssetLoadingExt,
     character_controller::ReadHeading,
     health::DamageEvent,
-    input::InputAction,
+    input::{InputAction, InputState},
     physics::{ENEMY_GROUP, SHOTGUN_GROUP},
     player::Player,
-    states::{AssetLoadingExt, GameState, PauseState},
+    states::{GameState, PauseState},
 };
 
 #[derive(Debug, Default)]
@@ -96,6 +97,7 @@ pub enum ShotgunState {
 fn update_shotgun(
     time: Res<Time>,
     input: Res<ActionState<InputAction>>,
+    input_state: Res<InputState>,
     mut query: Query<(&mut Shotgun, &Player)>,
     mut writer: EventWriter<ShotgunEvent>,
 ) {
@@ -105,7 +107,10 @@ fn update_shotgun(
         }
         match shotgun.state {
             ShotgunState::Idle => {
-                if !shotgun.should_fire(input.pressed(&InputAction::Fire)) {
+                if !shotgun.should_fire(
+                    input.pressed(&InputAction::FireSpace)
+                        || (input.pressed(&InputAction::FireMouse) && input_state.locked_cursor),
+                ) {
                     continue;
                 }
 

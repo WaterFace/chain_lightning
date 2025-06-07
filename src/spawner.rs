@@ -6,10 +6,11 @@ use bevy_rand::{global::GlobalEntropy, prelude::WyRand};
 use bevy_sprite3d::{Sprite3dBuilder, Sprite3dParams};
 
 use crate::{
+    assets::AssetLoadingExt,
     fire_skull::FireSkull,
     player::Player,
     sprite::{AnimatedSprite3d, FaceCamera},
-    states::{AssetLoadingExt, GameState, PauseState},
+    states::{GameState, PauseState},
 };
 
 #[derive(Debug, Default)]

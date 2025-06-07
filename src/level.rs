@@ -4,8 +4,9 @@ use bevy_rapier3d::prelude::{Collider, CollisionGroups};
 use bevy_sprite3d::prelude::*;
 
 use crate::{
+    assets::AssetLoadingExt,
     physics::{PLAYER_GROUP, WALL_GROUP},
-    states::{AssetLoadingExt, GameState},
+    states::GameState,
 };
 
 #[derive(Debug, Default)]

@@ -3,8 +3,9 @@ use bevy_asset_loader::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
+    assets::AssetLoadingExt,
     input::InputAction,
-    states::{AppState, AssetLoadingExt, GameState},
+    states::{AppState, GameState},
 };
 
 #[derive(Debug, Default)]
@@ -14,10 +15,8 @@ impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app.load_asset_on_startup::<MenuAssets>()
             // load this first so we can use it on the loading screen:
-            .add_loading_state(
-                LoadingState::new(AppState::PreLoading)
-                    .continue_to_state(AppState::AssetLoading)
-                    .load_collection::<LoadingAssets>(),
+            .configure_loading_state(
+                LoadingStateConfig::new(AppState::PreLoading).load_collection::<LoadingAssets>(),
             )
             .add_systems(OnEnter(AppState::AssetLoading), setup_loading_screen)
             .add_systems(OnEnter(GameState::MainMenu), setup_main_menu)
@@ -71,8 +70,12 @@ fn setup_main_menu(
     ));
 }
 
-fn main_menu(input: Res<ActionState<InputAction>>, mut next_state: ResMut<NextState<GameState>>) {
-    if input.just_pressed(&InputAction::Fire) {
+fn main_menu(
+    mut input: ResMut<ActionState<InputAction>>,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    if input.just_pressed(&InputAction::FireSpace) {
+        input.release(&InputAction::FireSpace);
         next_state.set(GameState::InGame);
     }
 }
@@ -92,8 +95,12 @@ fn setup_end_screen(
     ));
 }
 
-fn end_screen(input: Res<ActionState<InputAction>>, mut next_state: ResMut<NextState<GameState>>) {
-    if input.just_pressed(&InputAction::Fire) {
+fn end_screen(
+    mut input: ResMut<ActionState<InputAction>>,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    if input.just_pressed(&InputAction::FireSpace) {
+        input.release(&InputAction::FireSpace);
         next_state.set(GameState::InGame);
     }
 }

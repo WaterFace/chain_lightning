@@ -2,8 +2,9 @@ use bevy::{core_pipeline::Skybox, prelude::*};
 use bevy_asset_loader::asset_collection::AssetCollection;
 
 use crate::{
+    assets::AssetLoadingExt,
     character_controller::ReadHeading,
-    states::{AppState, AssetLoadingExt, GameState, PauseState},
+    states::{AppState, GameState, PauseState},
 };
 
 #[derive(Debug, Default)]

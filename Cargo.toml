@@ -50,13 +50,14 @@ bevy = { version = "0.16", default-features = false, features = [
     "webgl2",
     "x11",
 ] }
-bevy_asset_loader = { version = "0.23.0", features = ["2d"] }
+bevy_asset_loader = { version = "0.23.0", features = ["2d", "progress_tracking"] }
 bevy_egui = "0.34.1"
 bevy_fix_cursor_unlock_web = "0.1.2"
 bevy_rand = { version = "0.11.0", features = ["wyrand"] }
 bevy_rapier3d = "0.30.0"
 bevy_seedling = "0.4.0"
 bevy_sprite3d = "5.0.0"
+iyes_progress = "0.14.0"
 leafwing-input-manager = "0.17.0"
 num-format = "0.4.4"
 

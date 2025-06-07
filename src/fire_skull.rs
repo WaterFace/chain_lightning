@@ -6,12 +6,13 @@ use bevy_rapier3d::prelude::*;
 use bevy_sprite3d::prelude::*;
 
 use crate::{
+    assets::AssetLoadingExt,
     character_controller::{CharacterController, CharacterControllerState},
     health::{DamageEvent, Health},
     physics::{ENEMY_GROUP, EXPLOSION_GROUP, PLAYER_GROUP, SHOTGUN_GROUP},
     player::Player,
     sprite::{AnimatedSprite3d, FaceCamera},
-    states::{AssetLoadingExt, GameState, PauseState},
+    states::{GameState, PauseState},
 };
 
 #[derive(Debug, Default)]

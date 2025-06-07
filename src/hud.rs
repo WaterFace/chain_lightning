@@ -5,10 +5,7 @@ use bevy_asset_loader::asset_collection::AssetCollection;
 use num_format::{Locale, WriteFormatted};
 
 use crate::{
-    health::Health,
-    player::Player,
-    score::Score,
-    states::{AssetLoadingExt, GameState},
+    assets::AssetLoadingExt, health::Health, player::Player, score::Score, states::GameState,
 };
 
 #[derive(Debug, Default)]

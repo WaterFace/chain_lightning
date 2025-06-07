@@ -1,6 +1,7 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
 
+mod assets;
 mod audio;
 mod camera;
 mod character_controller;
@@ -55,6 +56,7 @@ fn main() {
         )
         // Add the states plugin first so asset loading is ready for any other plugin
         .add_plugins(states::StatesPlugin)
+        .add_plugins(assets::AssetPlugin)
         .add_plugins((
             audio::AudioPlugin,
             player::PlayerPlugin,

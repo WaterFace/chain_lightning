@@ -4,10 +4,11 @@ use bevy_rapier3d::prelude::*;
 use bevy_sprite3d::{Sprite3dBuilder, Sprite3dParams};
 
 use crate::{
+    assets::AssetLoadingExt,
     health::{DamageEvent, Health},
     physics::{ENEMY_GROUP, EXPLOSION_GROUP, PLAYER_GROUP},
     sprite::{AnimatedSprite3d, FaceCamera},
-    states::{AssetLoadingExt, GameState, PauseState},
+    states::{GameState, PauseState},
 };
 
 #[derive(Debug, Default)]

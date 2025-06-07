@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 use bevy_seedling::{prelude::*, sample::Sample};
 
-use crate::states::{AssetLoadingExt, GameState};
+use crate::{assets::AssetLoadingExt, states::GameState};
 
 #[derive(Debug, Default)]
 pub struct AudioPlugin;
